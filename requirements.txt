@@ -39,6 +39,7 @@ pydantic<=2.10.6
 ctranslate2>=4.0,<5
 huggingface_hub
 wandb
+pyngrok
 
 # --- Xử lý ngôn ngữ & TTS Backend ---
 funasr==1.0.27
@@ -64,4 +65,5 @@ fastapi[standard]>=0.115.2
 uvicorn
 
 # --- 🚀 Tiếng Việt Add-on (Bắt buộc để độ Repo) ---
+vivi-g2p
 vinorm

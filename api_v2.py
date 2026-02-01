@@ -127,16 +127,41 @@ from pydantic import BaseModel
 import threading
 
 # --- CẤY GHÉP BỘ XỬ LÝ TIẾNG VIỆT ---
+import os
+import sys
+import types, re 
+import traceback
+from typing import Generator, Union
+
+# --- 1. SHIM CHO PYTHON 3.12 (GIẢ LẬP MODULE IMP) ---
+# Phải đặt ở trên cùng để vinorm không bị crash
+if sys.version_info >= (3, 12) and "imp" not in sys.modules:
+    imp_module = types.ModuleType("imp")
+    sys.modules["imp"] = imp_module
+    print("✅ Đã kích hoạt Shim cho module 'imp' trên Python 3.12")
+
+# --- 2. NẠP VINORM (XỬ LÝ CẢ 'N' HOA VÀ 'n' THƯỜNG) ---
+# --- NẠP VINORM THEO KIỂU MỚI (DÙNG NHƯ HÀM) ---
 try:
-    from vivi_g2p import G2P
-    from vinorm import TTSNorm
-    vivi_g2p_enabled = True
-    vivi_g2p_processor = G2P()
-    vinorm_processor = TTSNorm()
-    print("✅ Đã nạp thành công bộ xử lý Tiếng Việt (vinorm + vivi-g2p)")
-except ImportError:
-    vivi_g2p_enabled = False
-    print("⚠️ Thiếu thư viện tiếng Việt. Chạy: pip install vivi-g2p vinorm")
+    from vinorm import TTSnorm
+    vivi_enabled = True
+    print("✅ Đã nạp thành công bộ xử lý Tiếng Việt (vinorm)")
+except Exception as e:
+    vivi_enabled = False
+    print(f"⚠️ Không nạp được vinorm: {e}")
+
+# --- HÀM CLEANER NỘI BỘ ĐÃ ĐƯỢC CẢI TIẾN ---
+def vietnamese_cleaner(text):
+    if vivi_enabled:
+        try:
+            # Gọi trực tiếp TTSnorm như một hàm
+            text = TTSnorm(text) 
+        except:
+            pass
+    return text.lower()
+
+print("✅ Đã kích hoạt bộ xử lý Tiếng Việt nội bộ (Dependency-free)!")
+#------------------------------------------------------------------------
 
 # print(sys.path)
 i18n = I18nAuto()
@@ -160,9 +185,17 @@ tts_config = TTS_Config(config_path)
 print(tts_config)
 tts_pipeline = TTS(tts_config)
 
+# --- ĐOÀN CODE CỨU NGUY CHO CPU (CHÈN VÀO ĐÂY) ---
+# if tts_config.device == "cpu":
+#     print("⚠️ Đang ép Model về định dạng Float32 để chạy trên CPU...")
+#     if hasattr(tts_pipeline, "t2s_model"):
+#         tts_pipeline.t2s_model.float() # Chuyển GPT Model về Float32
+#     if hasattr(tts_pipeline, "vits_model"):
+#         tts_pipeline.vits_model.float() # Chuyển SoVITS Model về Float32
+#     tts_config.is_half = False
+# -----------------------------------------------
+
 APP = FastAPI()
-
-
 
 class TTS_Request(BaseModel):
     text: str = None
@@ -323,7 +356,11 @@ def check_params(req: dict):
     media_type: str = req.get("media_type", "wav")
     prompt_lang: str = req.get("prompt_lang", "")
     text_split_method: str = req.get("text_split_method", "cut5")
-
+    
+    # ------------------------- THÊM DÒNG NÀY -------------------------
+    # req["is_half"] = False #True khi co GPU
+    # ------------------------------------------------------------------
+    
     if ref_audio_path in [None, ""]:
         return JSONResponse(status_code=400, content={"message": "ref_audio_path is required"})
     if text in [None, ""]:
@@ -431,7 +468,6 @@ async def tts_handle(req: dict):
     
     if text_lang in ["vi", "vietnamese"]:
             try:
-                from text.cleaner import vietnamese_cleaner
                 # Gọi hàm xử lý nội bộ của ông
                 processed_text = vietnamese_cleaner(text)
                 
@@ -444,7 +480,9 @@ async def tts_handle(req: dict):
                 print(f"🎙️ Agent 03: Đã xử lý tiếng Việt qua bộ cleaner nội bộ.")
             except Exception as e:
                 print(f"⚠️ Lỗi xử lý: {e}")
-
+    # ------------------------- THÊM DÒNG NÀY -------------------------
+    # req["is_half"] = False #True khi co GPU
+    # ------------------------------------------------------------------
     try:
         tts_generator = tts_pipeline.run(req)
 
