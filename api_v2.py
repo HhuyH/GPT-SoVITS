@@ -430,16 +430,20 @@ async def tts_handle(req: dict):
     text_lang = req.get("text_lang", "").lower()
     
     if text_lang in ["vi", "vietnamese"]:
-        # Gọi bộ cleaner 'xịn' mà ông đã chuẩn bị
-        try:
-            from text.cleaner import vietnamese_cleaner
-            req["text"] = vietnamese_cleaner(text)
-            # Ép về 'zh' để Model không báo lỗi ngôn ngữ lạ, 
-            # nhưng thực tế nó đang đọc Phonemes tiếng Việt mình đã xử lý.
-            req["text_lang"] = "zh" 
-            print(f"✅ Agent 03: Đã chuyển đổi tiếng Việt sang Phonemes thành công.")
-        except Exception as e:
-            print(f"❌ Lỗi xử lý tiếng Việt: {e}")
+            try:
+                from text.cleaner import vietnamese_cleaner
+                # Gọi hàm xử lý nội bộ của ông
+                processed_text = vietnamese_cleaner(text)
+                
+                # Ghi đè lại text đã sạch vào yêu cầu
+                req["text"] = processed_text
+                
+                # 'Trick' thần thánh: Ép về 'zh' để Model không báo lỗi
+                req["text_lang"] = "zh"
+                
+                print(f"🎙️ Agent 03: Đã xử lý tiếng Việt qua bộ cleaner nội bộ.")
+            except Exception as e:
+                print(f"⚠️ Lỗi xử lý: {e}")
 
     try:
         tts_generator = tts_pipeline.run(req)

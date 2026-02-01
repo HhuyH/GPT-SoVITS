@@ -64,5 +64,4 @@ fastapi[standard]>=0.115.2
 uvicorn
 
 # --- 🚀 Tiếng Việt Add-on (Bắt buộc để độ Repo) ---
-vivi-g2p
 vinorm
