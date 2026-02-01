@@ -126,6 +126,18 @@ from GPT_SoVITS.TTS_infer_pack.text_segmentation_method import get_method_names 
 from pydantic import BaseModel
 import threading
 
+# --- CẤY GHÉP BỘ XỬ LÝ TIẾNG VIỆT ---
+try:
+    from vivi_g2p import G2P
+    from vinorm import TTSNorm
+    vivi_g2p_enabled = True
+    vivi_g2p_processor = G2P()
+    vinorm_processor = TTSNorm()
+    print("✅ Đã nạp thành công bộ xử lý Tiếng Việt (vinorm + vivi-g2p)")
+except ImportError:
+    vivi_g2p_enabled = False
+    print("⚠️ Thiếu thư viện tiếng Việt. Chạy: pip install vivi-g2p vinorm")
+
 # print(sys.path)
 i18n = I18nAuto()
 cut_method_names = get_cut_method_names()
@@ -149,6 +161,7 @@ print(tts_config)
 tts_pipeline = TTS(tts_config)
 
 APP = FastAPI()
+
 
 
 class TTS_Request(BaseModel):
@@ -317,14 +330,14 @@ def check_params(req: dict):
         return JSONResponse(status_code=400, content={"message": "text is required"})
     if text_lang in [None, ""]:
         return JSONResponse(status_code=400, content={"message": "text_lang is required"})
-    elif text_lang.lower() not in tts_config.languages:
+    elif text_lang.lower() not in tts_config.languages and text_lang.lower() not in ["vi", "vietnamese"]:
         return JSONResponse(
             status_code=400,
             content={"message": f"text_lang: {text_lang} is not supported in version {tts_config.version}"},
         )
     if prompt_lang in [None, ""]:
         return JSONResponse(status_code=400, content={"message": "prompt_lang is required"})
-    elif prompt_lang.lower() not in tts_config.languages:
+    elif prompt_lang.lower() not in tts_config.languages and prompt_lang.lower() not in ["vi", "vietnamese"]:
         return JSONResponse(
             status_code=400,
             content={"message": f"prompt_lang: {prompt_lang} is not supported in version {tts_config.version}"},
@@ -413,6 +426,20 @@ async def tts_handle(req: dict):
 
     streaming_mode = streaming_mode or return_fragment
 
+    text = req.get("text", "")
+    text_lang = req.get("text_lang", "").lower()
+    
+    if text_lang in ["vi", "vietnamese"]:
+        # Gọi bộ cleaner 'xịn' mà ông đã chuẩn bị
+        try:
+            from text.cleaner import vietnamese_cleaner
+            req["text"] = vietnamese_cleaner(text)
+            # Ép về 'zh' để Model không báo lỗi ngôn ngữ lạ, 
+            # nhưng thực tế nó đang đọc Phonemes tiếng Việt mình đã xử lý.
+            req["text_lang"] = "zh" 
+            print(f"✅ Agent 03: Đã chuyển đổi tiếng Việt sang Phonemes thành công.")
+        except Exception as e:
+            print(f"❌ Lỗi xử lý tiếng Việt: {e}")
 
     try:
         tts_generator = tts_pipeline.run(req)
@@ -481,11 +508,11 @@ async def tts_get_endpoint(
 ):
     req = {
         "text": text,
-        "text_lang": text_lang.lower(),
+        "text_lang": (text_lang or "vi").lower(),
         "ref_audio_path": ref_audio_path,
         "aux_ref_audio_paths": aux_ref_audio_paths,
         "prompt_text": prompt_text,
-        "prompt_lang": prompt_lang.lower(),
+        "prompt_lang": (prompt_lang or "zh").lower(),
         "top_k": top_k,
         "top_p": top_p,
         "temperature": temperature,

@@ -1,4 +1,7 @@
+# --- Cấu hình cài đặt đặc biệt ---
 --no-binary=opencc
+
+# --- Core & Frameworks ---
 numpy<2.0
 scipy
 tensorboard
@@ -7,37 +10,59 @@ numba
 pytorch-lightning>=2.4
 gradio<5
 ffmpeg-python
-onnxruntime; platform_machine == "aarch64" or platform_machine == "arm64"
-onnxruntime-gpu; platform_machine == "x86_64" or platform_machine == "AMD64"
+ffmpeg
 tqdm
+psutil
+PyYAML
+chardet
+av>=11
+setuptools
+omegaconf
+hydra-core
+einops
+python-multipart
+
+# --- AI & Deep Learning Tối ưu hóa ---
+torchaudio
+transformers>=4.43,<=4.50
+peft<0.18.0
+modelscope
+sentencepiece
+rotary_embedding_torch
+x-transformers
+vector-quantize-pytorch
+ema-pytorch
+bitsandbytes
+accelerate
+torchmetrics<=1.5
+pydantic<=2.10.6
+ctranslate2>=4.0,<5
+huggingface_hub
+wandb
+
+# --- Xử lý ngôn ngữ & TTS Backend ---
 funasr==1.0.27
 cn2an
 pypinyin
 pyopenjtalk>=0.4.1
 g2p_en
-torchaudio
-modelscope
-sentencepiece
-transformers>=4.43,<=4.50
-peft<0.18.0
-chardet
-PyYAML
-psutil
+phonemizer
 jieba_fast
 jieba
 split-lang
 fast_langdetect>=0.3.1
+langid
 wordsegment
-rotary_embedding_torch
 ToJyutping 
 g2pk2
 ko_pron
 opencc
 python_mecab_ko; sys_platform != 'win32'
+
+# --- API & Server ---
 fastapi[standard]>=0.115.2
-x_transformers
-torchmetrics<=1.5
-pydantic<=2.10.6
-ctranslate2>=4.0,<5
-av>=11
-tqdm
+uvicorn
+
+# --- 🚀 Tiếng Việt Add-on (Bắt buộc để độ Repo) ---
+vivi-g2p
+vinorm
