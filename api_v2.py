@@ -182,18 +182,46 @@ if config_path in [None, ""]:
     config_path = "GPT-SoVITS/configs/tts_infer.yaml"
 
 tts_config = TTS_Config(config_path)
+
+# --- DEBUG & CƯỠNG CHẾ GPU ---
+import torch
+if torch.cuda.is_available():
+    print("🚀 PHÁT HIỆN GPU! Đang cưỡng chế chuyển sang CUDA...")
+    tts_config.device = "cuda"
+    tts_config.is_half = False # Hoặc True nếu ông muốn test
+else:
+    print("⚠️ KHÔNG TÌM THẤY GPU! Đành phải dùng CPU...")
+    tts_config.device = "cpu"
+    tts_config.is_half = False
+
+print(f"✅ Cấu hình cuối cùng: Device={tts_config.device}, Is_Half={tts_config.is_half}")
+# -----------------------------
+
 print(tts_config)
 tts_pipeline = TTS(tts_config)
 
-# --- ĐOÀN CODE CỨU NGUY CHO CPU (CHÈN VÀO ĐÂY) ---
-# if tts_config.device == "cpu":
-#     print("⚠️ Đang ép Model về định dạng Float32 để chạy trên CPU...")
-#     if hasattr(tts_pipeline, "t2s_model"):
-#         tts_pipeline.t2s_model.float() # Chuyển GPT Model về Float32
-#     if hasattr(tts_pipeline, "vits_model"):
-#         tts_pipeline.vits_model.float() # Chuyển SoVITS Model về Float32
-#     tts_config.is_half = False
-# -----------------------------------------------
+# --- BẮT ĐẦU ĐOẠN CODE QUÉT SẠCH TOÀN DIỆN (Ultimate Fix) ---
+import torch
+import torch.nn as nn
+
+print("🔧 Đang tổng kiểm tra và ép TOÀN BỘ Model con về Float32...")
+
+# Duyệt qua tất cả các linh kiện bên trong tts_pipeline
+for attr_name in dir(tts_pipeline):
+    # Lấy giá trị thuộc tính
+    module = getattr(tts_pipeline, attr_name)
+    
+    # Nếu nó là một Model (Neural Network) -> Ép ngay
+    if isinstance(module, nn.Module):
+        print(f"  -> Phát hiện '{attr_name}': Ép về Float32 ngay lập tức!")
+        module.float()
+        # Gán ngược lại để chắc chắn
+        setattr(tts_pipeline, attr_name, module)
+
+# Chốt lại config
+tts_config.is_half = False 
+print("✅ HOÀN TẤT! Đã diệt sạch tận gốc HalfTensor trong BERT và CNHuBERT.")
+# --- KẾT THÚC ---
 
 APP = FastAPI()
 
@@ -357,10 +385,6 @@ def check_params(req: dict):
     prompt_lang: str = req.get("prompt_lang", "")
     text_split_method: str = req.get("text_split_method", "cut5")
     
-    # ------------------------- THÊM DÒNG NÀY -------------------------
-    # req["is_half"] = False #True khi co GPU
-    # ------------------------------------------------------------------
-    
     if ref_audio_path in [None, ""]:
         return JSONResponse(status_code=400, content={"message": "ref_audio_path is required"})
     if text in [None, ""]:
@@ -480,9 +504,6 @@ async def tts_handle(req: dict):
                 print(f"🎙️ Agent 03: Đã xử lý tiếng Việt qua bộ cleaner nội bộ.")
             except Exception as e:
                 print(f"⚠️ Lỗi xử lý: {e}")
-    # ------------------------- THÊM DÒNG NÀY -------------------------
-    # req["is_half"] = False #True khi co GPU
-    # ------------------------------------------------------------------
     try:
         tts_generator = tts_pipeline.run(req)
 

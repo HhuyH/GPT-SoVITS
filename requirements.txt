@@ -64,6 +64,12 @@ python_mecab_ko; sys_platform != 'win32'
 fastapi[standard]>=0.115.2
 uvicorn
 
+# --- Extra từ pip install ---
+torch
+split_lang
+onnxruntime
+TorchCodec
+wordsegment
+
 # --- 🚀 Tiếng Việt Add-on (Bắt buộc để độ Repo) ---
-vivi-g2p
 vinorm
