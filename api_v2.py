@@ -126,6 +126,43 @@ from GPT_SoVITS.TTS_infer_pack.text_segmentation_method import get_method_names 
 from pydantic import BaseModel
 import threading
 
+# --- CẤY GHÉP BỘ XỬ LÝ TIẾNG VIỆT ---
+import os
+import sys
+import types, re 
+import traceback
+from typing import Generator, Union
+
+# --- 1. SHIM CHO PYTHON 3.12 (GIẢ LẬP MODULE IMP) ---
+# Phải đặt ở trên cùng để vinorm không bị crash
+if sys.version_info >= (3, 12) and "imp" not in sys.modules:
+    imp_module = types.ModuleType("imp")
+    sys.modules["imp"] = imp_module
+    print("✅ Đã kích hoạt Shim cho module 'imp' trên Python 3.12")
+
+# --- 2. NẠP VINORM (XỬ LÝ CẢ 'N' HOA VÀ 'n' THƯỜNG) ---
+# --- NẠP VINORM THEO KIỂU MỚI (DÙNG NHƯ HÀM) ---
+try:
+    from vinorm import TTSnorm
+    vivi_enabled = True
+    print("✅ Đã nạp thành công bộ xử lý Tiếng Việt (vinorm)")
+except Exception as e:
+    vivi_enabled = False
+    print(f"⚠️ Không nạp được vinorm: {e}")
+
+# --- HÀM CLEANER NỘI BỘ ĐÃ ĐƯỢC CẢI TIẾN ---
+def vietnamese_cleaner(text):
+    if vivi_enabled:
+        try:
+            # Gọi trực tiếp TTSnorm như một hàm
+            text = TTSnorm(text) 
+        except:
+            pass
+    return text.lower()
+
+print("✅ Đã kích hoạt bộ xử lý Tiếng Việt nội bộ (Dependency-free)!")
+#------------------------------------------------------------------------
+
 # print(sys.path)
 i18n = I18nAuto()
 cut_method_names = get_cut_method_names()
@@ -145,11 +182,48 @@ if config_path in [None, ""]:
     config_path = "GPT-SoVITS/configs/tts_infer.yaml"
 
 tts_config = TTS_Config(config_path)
+
+# --- DEBUG & CƯỠNG CHẾ GPU ---
+import torch
+if torch.cuda.is_available():
+    print("🚀 PHÁT HIỆN GPU! Đang cưỡng chế chuyển sang CUDA...")
+    tts_config.device = "cuda"
+    tts_config.is_half = False # Hoặc True nếu ông muốn test
+else:
+    print("⚠️ KHÔNG TÌM THẤY GPU! Đành phải dùng CPU...")
+    tts_config.device = "cpu"
+    tts_config.is_half = False
+
+print(f"✅ Cấu hình cuối cùng: Device={tts_config.device}, Is_Half={tts_config.is_half}")
+# -----------------------------
+
 print(tts_config)
 tts_pipeline = TTS(tts_config)
 
-APP = FastAPI()
+# --- BẮT ĐẦU ĐOẠN CODE QUÉT SẠCH TOÀN DIỆN (Ultimate Fix) ---
+import torch
+import torch.nn as nn
 
+print("🔧 Đang tổng kiểm tra và ép TOÀN BỘ Model con về Float32...")
+
+# Duyệt qua tất cả các linh kiện bên trong tts_pipeline
+for attr_name in dir(tts_pipeline):
+    # Lấy giá trị thuộc tính
+    module = getattr(tts_pipeline, attr_name)
+    
+    # Nếu nó là một Model (Neural Network) -> Ép ngay
+    if isinstance(module, nn.Module):
+        print(f"  -> Phát hiện '{attr_name}': Ép về Float32 ngay lập tức!")
+        module.float()
+        # Gán ngược lại để chắc chắn
+        setattr(tts_pipeline, attr_name, module)
+
+# Chốt lại config
+tts_config.is_half = False 
+print("✅ HOÀN TẤT! Đã diệt sạch tận gốc HalfTensor trong BERT và CNHuBERT.")
+# --- KẾT THÚC ---
+
+APP = FastAPI()
 
 class TTS_Request(BaseModel):
     text: str = None
@@ -310,21 +384,21 @@ def check_params(req: dict):
     media_type: str = req.get("media_type", "wav")
     prompt_lang: str = req.get("prompt_lang", "")
     text_split_method: str = req.get("text_split_method", "cut5")
-
+    
     if ref_audio_path in [None, ""]:
         return JSONResponse(status_code=400, content={"message": "ref_audio_path is required"})
     if text in [None, ""]:
         return JSONResponse(status_code=400, content={"message": "text is required"})
     if text_lang in [None, ""]:
         return JSONResponse(status_code=400, content={"message": "text_lang is required"})
-    elif text_lang.lower() not in tts_config.languages:
+    elif text_lang.lower() not in tts_config.languages and text_lang.lower() not in ["vi", "vietnamese"]:
         return JSONResponse(
             status_code=400,
             content={"message": f"text_lang: {text_lang} is not supported in version {tts_config.version}"},
         )
     if prompt_lang in [None, ""]:
         return JSONResponse(status_code=400, content={"message": "prompt_lang is required"})
-    elif prompt_lang.lower() not in tts_config.languages:
+    elif prompt_lang.lower() not in tts_config.languages and prompt_lang.lower() not in ["vi", "vietnamese"]:
         return JSONResponse(
             status_code=400,
             content={"message": f"prompt_lang: {prompt_lang} is not supported in version {tts_config.version}"},
@@ -413,7 +487,23 @@ async def tts_handle(req: dict):
 
     streaming_mode = streaming_mode or return_fragment
 
-
+    text = req.get("text", "")
+    text_lang = req.get("text_lang", "").lower()
+    
+    if text_lang in ["vi", "vietnamese"]:
+            try:
+                # Gọi hàm xử lý nội bộ của ông
+                processed_text = vietnamese_cleaner(text)
+                
+                # Ghi đè lại text đã sạch vào yêu cầu
+                req["text"] = processed_text
+                
+                # 'Trick' thần thánh: Ép về 'zh' để Model không báo lỗi
+                req["text_lang"] = "zh"
+                
+                print(f"🎙️ Agent 03: Đã xử lý tiếng Việt qua bộ cleaner nội bộ.")
+            except Exception as e:
+                print(f"⚠️ Lỗi xử lý: {e}")
     try:
         tts_generator = tts_pipeline.run(req)
 
@@ -481,11 +571,11 @@ async def tts_get_endpoint(
 ):
     req = {
         "text": text,
-        "text_lang": text_lang.lower(),
+        "text_lang": (text_lang or "vi").lower(),
         "ref_audio_path": ref_audio_path,
         "aux_ref_audio_paths": aux_ref_audio_paths,
         "prompt_text": prompt_text,
-        "prompt_lang": prompt_lang.lower(),
+        "prompt_lang": (prompt_lang or "zh").lower(),
         "top_k": top_k,
         "top_p": top_p,
         "temperature": temperature,

@@ -39,5 +39,9 @@ x_transformers
 torchmetrics<=1.5
 pydantic<=2.10.6
 ctranslate2>=4.0,<5
+cn2an
+pypinyin
 av>=11
 tqdm
+matplotlib
+
