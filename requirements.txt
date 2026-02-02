@@ -42,6 +42,8 @@ ctranslate2>=4.0,<5
 cn2an
 pypinyin
 av>=11
+torchcodec
+nltk==3.8.1
 tqdm
 matplotlib
 

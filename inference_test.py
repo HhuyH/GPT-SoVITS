@@ -8,14 +8,14 @@ cmd = [
     "--gpt_model", "GPT_weights/GPT_GenshinImpact_EN_5.1.ckpt",
     "--sovits_model", "SoVITS_weights/SV_WutheringWaves_CN_1.3.pth",
 
-    "--ref_audio", "refs/male_clear.wav",
-    "--ref_text", "refs/male_clear.txt",
+    "--ref_audio", r"D:\AI Audio\voices\Audios\Giong_nu_doc_podcast_cham_rai_ro_chu\cut_1m30s\vocals.wav",
+    "--ref_text", r"D:\AI Audio\voices\Audios\Giong_nu_doc_podcast_cham_rai_ro_chu\cut_1m30s\cut_1m30s.txt",
     "--ref_language", "英文",
 
-    "--target_text", "Hôm nay trời mưa, tôi không muốn ra ngoài.",
-    "--target_language", "多语种混合",
+    "--target_text", "refs/target_vi.txt",
+    "--target_language", "英文",
 
-    "--output_path", "phase1_test.wav"
+    "--output_path", "output",
 ]
 
 subprocess.run(cmd, check=True)
