@@ -144,6 +144,8 @@ dict_language_v1 = {
     i18n("中英混合"): "zh",  # 按中英混合识别####不变
     i18n("日英混合"): "ja",  # 按日英混合识别####不变
     i18n("多语种混合"): "auto",  # 多语种启动切分识别语种
+    "vi": "vi",       
+    "Vietnamese": "vi",
 }
 dict_language_v2 = {
     i18n("中文"): "all_zh",  # 全部按中文识别
@@ -157,6 +159,8 @@ dict_language_v2 = {
     i18n("韩英混合"): "ko",  # 按韩英混合识别####不变
     i18n("多语种混合"): "auto",  # 多语种启动切分识别语种
     i18n("多语种混合(粤语)"): "auto_yue",  # 多语种启动切分识别语种
+    "vi": "vi",       
+    "Vietnamese": "vi",
 }
 dict_language = dict_language_v1 if version == "v1" else dict_language_v2
 

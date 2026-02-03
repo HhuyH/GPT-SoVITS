@@ -24,10 +24,10 @@ def clean_text(text, language, version=None):
         version = os.environ.get("version", "v2")
     if version == "v1":
         symbols = symbols_v1.symbols
-        language_module_map = {"zh": "chinese", "ja": "japanese", "en": "english", "vi": "vietnamese"}
+        language_module_map = {"zh": "chinese", "ja": "japanese", "en": "english", "vi": "vietnamese", "Vietnamese": "vi",}
     else:
         symbols = symbols_v2.symbols
-        language_module_map = {"zh": "chinese2", "ja": "japanese", "en": "english", "ko": "korean", "yue": "cantonese", "vi": "vietnamese"}
+        language_module_map = {"zh": "chinese2", "ja": "japanese", "en": "english", "ko": "korean", "yue": "cantonese", "vi": "vietnamese", "Vietnamese": "vi"}
 
     if language not in language_module_map:
         language = "en"

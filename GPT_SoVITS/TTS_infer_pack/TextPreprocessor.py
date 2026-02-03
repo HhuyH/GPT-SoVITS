@@ -102,7 +102,7 @@ class TextPreprocessor:
                 # 检测一下，如果是纯符号，就跳过。
                 continue
             if text[-1] not in splits:
-                text += "。" if lang != "en" else "."
+                text += "。" if lang not in ["en", "vi"] else "."
 
             # 解决句子过长导致Bert报错的问题
             if len(text) > 510:
@@ -144,6 +144,9 @@ class TextPreprocessor:
                     textlist.append(tmp["text"])
             elif language == "en":
                 langlist.append("en")
+                textlist.append(text)
+            elif language == "vi": # <--- CHÈN KHỐI NÀY VÀO
+                langlist.append("vi")
                 textlist.append(text)
             elif language == "auto":
                 for tmp in LangSegmenter.getTexts(text):

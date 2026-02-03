@@ -4,6 +4,9 @@ from typing import Callable
 punctuation = set(["!", "?", "…", ",", ".", "-", " "])
 METHODS = dict()
 
+splits = {
+    "，", "。", "？", "！", ",", ".", "?", "!", "~", ":", "：", "—", "…",
+}
 
 def get_method(name: str) -> Callable:
     method = METHODS.get(name, None)
