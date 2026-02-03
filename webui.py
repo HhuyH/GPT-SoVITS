@@ -1417,7 +1417,7 @@ with gr.Blocks(title="GPT-SoVITS WebUI", analytics_enabled=False, js=js, css=css
                                 label=i18n("ASR 模型尺寸"), choices=["large"], interactive=True, value="large"
                             )
                             asr_lang = gr.Dropdown(
-                                label=i18n("ASR 语言设置"), choices=["zh", "yue"], interactive=True, value="zh"
+                                label=i18n("ASR 语言设置"), choices=["zh", "yue", "vi"], interactive=True, value="zh"
                             )
                             asr_precision = gr.Dropdown(
                                 label=i18n("数据类型精度"), choices=["float32"], interactive=True, value="float32"

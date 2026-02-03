@@ -1,5 +1,7 @@
+# langsegmenter.py
 import logging
 import re
+from string import punctuation
 
 # jieba静音
 import jieba
@@ -73,12 +75,33 @@ def merge_lang(lang_list, item):
         lang_list.append(item)
     return lang_list
 
+# Thêm bảng ánh xạ dấu câu này vào đầu file (sau các phần import)
+rep_map = {
+    "：": ",", "；": ",", "，": ",", "。": ".", "！": "!", "？": "?",
+    "\n": ".", "·": ",", "、": ",", "...": "…", "$": ".", "/": ",",
+    "—": "-", "~": "…", "～": "…",
+}
+
+def replace_punctuation(text):
+    # 1. Chuẩn hóa một số từ đệm (tùy chọn)
+    text = text.replace("嗯", "恩").replace("呣", "母")
+    
+    # 2. Quy chuẩn dấu câu
+    pattern = re.compile("|".join(re.escape(p) for p in rep_map.keys()))
+    replaced_text = pattern.sub(lambda x: rep_map[x.group()], text)
+
+    # 3. Lọc sạch ký tự rác, chỉ giữ lại Trung, Anh, Việt và dấu câu chuẩn
+    # \u00C0-\u1EF9 là dải mã dành riêng cho toàn bộ ký tự tiếng Việt có dấu
+    replaced_text = re.sub(r"[^\u4e00-\u9fa5a-zA-Z\u00C0-\u1EF9\s" + "".join(punctuation) + r"]+", "", replaced_text)
+
+    return replaced_text
 
 class LangSegmenter():
     # 默认过滤器, 基于gsv目前四种语言
     DEFAULT_LANG_MAP = {
         "zh": "zh",
         "yue": "zh",  # 粤语
+        "vi": "vi",
         "wuu": "zh",  # 吴语
         "zh-cn": "zh",
         "zh-tw": "x", # 繁体设置为x
@@ -88,6 +111,9 @@ class LangSegmenter():
     }
 
     def getTexts(text,default_lang = ""):
+        
+        text = replace_punctuation(text)
+        
         lang_splitter = LangSplitter(lang_map=LangSegmenter.DEFAULT_LANG_MAP)
         lang_splitter.merge_across_digit = False
         substr = lang_splitter.split_by_lang(text=text)
@@ -223,3 +249,7 @@ if __name__ == "__main__":
     text = "当时ThinkPad T60刚刚发布，一同推出的还有一款名为Advanced Dock的扩展坞配件。这款扩展坞通过连接T60底部的插槽，扩展出包括PCIe在内的一大堆接口，并且自带电源，让T60可以安装桌面显卡来提升性能。"
     print(LangSegmenter.getTexts(text,"zh"))
     print(LangSegmenter.getTexts(text))
+    
+    text = "Chào ông giáo, hôm nay trời đẹp quá!"
+    print(LangSegmenter.getTexts(text)) 
+    # Nó phải hiện ra: [{'lang': 'vi', 'text': 'Chào ông giáo, hôm nay trời đẹp quá!'}]

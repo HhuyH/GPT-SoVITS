@@ -1,3 +1,4 @@
+#fasterwhisper_asr.py
 import argparse
 import os
 import traceback
@@ -124,16 +125,25 @@ def execute_asr(input_folder, output_folder, model_path, language, precision):
                 vad_parameters=dict(min_silence_duration_ms=700),
                 language=language,
             )
+            
+            # --- ĐOẠN SỬA ---
             text = ""
-
-            if info.language in ["zh", "yue"]:
-                print("检测为中文文本, 转 FunASR 处理")
+            # Chỉ dùng FunASR cho tiếng Trung thực sự, còn lại dùng Whisper
+            if info.language in ["zh", "yue"] and language in ["zh", "yue", "auto", None]:
+                print(f"Phát hiện tiếng Trung/Quảng ({info.language}), dùng FunASR...")
                 text = only_asr(file_path, language=info.language.lower())
 
+            # Nếu không phải tiếng Trung hoặc FunASR không ra chữ, dùng kết quả Whisper
             if text == "":
                 for segment in segments:
                     text += segment.text
+            
+            # Lưu ý: Whisper đôi khi thêm khoảng trắng ở đầu, ta strip() cho sạch
+            text = text.strip()
+            
             output.append(f"{file_path}|{output_file_name}|{info.language.upper()}|{text}")
+            # ----------------
+            
         except Exception as e:
             print(e)
             traceback.print_exc()

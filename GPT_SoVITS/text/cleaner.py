@@ -1,3 +1,4 @@
+# cleaner.py
 from text import cleaned_text_to_sequence
 import os
 # if os.environ.get("version","v1")=="v1":
@@ -23,10 +24,10 @@ def clean_text(text, language, version=None):
         version = os.environ.get("version", "v2")
     if version == "v1":
         symbols = symbols_v1.symbols
-        language_module_map = {"zh": "chinese", "ja": "japanese", "en": "english"}
+        language_module_map = {"zh": "chinese", "ja": "japanese", "en": "english", "vi": "vietnamese"}
     else:
         symbols = symbols_v2.symbols
-        language_module_map = {"zh": "chinese2", "ja": "japanese", "en": "english", "ko": "korean", "yue": "cantonese"}
+        language_module_map = {"zh": "chinese2", "ja": "japanese", "en": "english", "ko": "korean", "yue": "cantonese", "vi": "vietnamese"}
 
     if language not in language_module_map:
         language = "en"
@@ -43,6 +44,9 @@ def clean_text(text, language, version=None):
         phones, word2ph = language_module.g2p(norm_text)
         assert len(phones) == sum(word2ph)
         assert len(norm_text) == len(word2ph)
+    elif language == "vi":
+        phones, word2ph = language_module.g2p(norm_text)
+        assert len(phones) == sum(word2ph)
     elif language == "en":
         phones = language_module.g2p(norm_text)
         if len(phones) < 4:
