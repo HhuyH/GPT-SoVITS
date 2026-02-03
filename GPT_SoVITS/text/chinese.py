@@ -56,7 +56,8 @@ def replace_punctuation(text):
 
     replaced_text = pattern.sub(lambda x: rep_map[x.group()], text)
 
-    replaced_text = re.sub(r"[^\u4e00-\u9fa5" + "".join(punctuation) + r"]+", "", replaced_text)
+    # Đã thêm a-zA-Z\u00C0-\u1EF9 vào để chấp nhận Tiếng Việt
+    replaced_text = re.sub(r"[^\u4e00-\u9fa5a-zA-Z\u00C0-\u1EF9" + "".join(punctuation) + r"]+", "", replaced_text)
 
     return replaced_text
 
@@ -103,7 +104,7 @@ def _g2p(segments):
     for seg in segments:
         pinyins = []
         # Replace all English words in the sentence
-        seg = re.sub("[a-zA-Z]+", "", seg)
+        # seg = re.sub("[a-zA-Z]+", "", seg)
         seg_cut = psg.lcut(seg)
         initials = []
         finals = []
