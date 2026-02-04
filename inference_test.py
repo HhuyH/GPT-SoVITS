@@ -6,8 +6,9 @@ import shutil # Thêm cái này để đổi tên file
 
 # Giả sử đây là dữ liệu từ JSON của ông giáo
 data_json = [
-    {"id": 1, "text": "Chào ông giáo, hôm nay trời đẹp quá."},
-    {"id": 2, "text": "Hệ thống Normalization chạy rất mượt."}
+    {"id": 1, "text": "Vào ngày 20/11/2026, dự án AI của chúng ta đã đạt độ chính xác 99,9% tại TP.HCM."},
+#     {"id": 2, "text": "Ông giáo già quyết tâm quyên góp quỹ khuyến học cho huyện Xuyên Mộc."},
+#     {"id": 3, "text": "Đường đi khúc khuỷu gập ghềnh, nhưng chú hươu cao cổ vẫn ngoảnh mặt nhìn."}
 ]
 
 def run_inference_from_json(item):

@@ -8,6 +8,10 @@ import torch
 from faster_whisper import WhisperModel
 from huggingface_hub import snapshot_download as snapshot_download_hf
 from modelscope import snapshot_download as snapshot_download_ms
+# Thêm import ở đầu file
+from text.vi_normalization.text_normlization import TextNormalizer
+normalizer = TextNormalizer()
+
 from tqdm import tqdm
 
 from tools.asr.config import get_models
@@ -135,9 +139,12 @@ def execute_asr(input_folder, output_folder, model_path, language, precision):
 
             # Nếu không phải tiếng Trung hoặc FunASR không ra chữ, dùng kết quả Whisper
             if text == "":
-                for segment in segments:
-                    text += segment.text
-            
+               # Thay đoạn cộng chuỗi bằng list join
+                text = " ".join([segment.text.strip() for segment in segments])
+            # TẨY TRẦN TEXT TẠI ĐÂY
+            text = normalizer.normalize(text)
+            if isinstance(text, list): text = " ".join(text)
+
             # Lưu ý: Whisper đôi khi thêm khoảng trắng ở đầu, ta strip() cho sạch
             text = text.strip()
             

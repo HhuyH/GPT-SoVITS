@@ -43,8 +43,13 @@ def replace_measure(sentence) -> str:
     """Thay thế các ký hiệu viết tắt trong câu bằng chữ viết đầy đủ"""
     # Sắp xếp key theo độ dài giảm dần để tránh thay thế nhầm (ví dụ: 'cm' trước 'cm2')
     sorted_keys = sorted(measure_dict.keys(), key=len, reverse=True)
+    
     for q_notation in sorted_keys:
-        if q_notation in sentence:
-            # Thêm khoảng trắng xung quanh để AI đọc tự nhiên hơn
-            sentence = sentence.replace(q_notation, measure_dict[q_notation])
+        # Sử dụng regex: Số (\d+) + khoảng trắng (\s*) + đơn vị (\b)
+        # re.escape để xử lý các ký hiệu đặc biệt như % hay $
+        pattern = rf"(\d+)\s*{re.escape(q_notation)}\b"
+        
+        # Chỉ thay thế khi khớp đúng pattern "số + đơn vị"
+        sentence = re.sub(pattern, rf"\1 {measure_dict[q_notation]} ", sentence, flags=re.IGNORECASE)
+        
     return sentence

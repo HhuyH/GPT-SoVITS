@@ -70,45 +70,16 @@ def replace_time(match) -> str:
 
     return result.strip()
 
+# Regex 1: Cho định dạng dd/mm/yyyy (Ưu tiên)
+RE_DATE_VN = re.compile(r"(\d{1,2})/(\d{1,2})/(\d{4})")
 
-# Regex nhận diện ngày tháng kiểu: 2026年02月03号
-RE_DATE = re.compile(
-    r"(\d{4}|\d{2})年"
-    r"((0?[1-9]|1[0-2])月)?"
-    r"(((0?[1-9])|((1|2)[0-9])|30|31)([日号]))?"
-)
+# Regex 2: Cho định dạng yyyy-mm-dd hoặc yyyy/mm/dd
+RE_DATE_ISO = re.compile(r"(\d{4})([- /.])(0[1-9]|1[012])\2(0[1-9]|[12][0-9]|3[01])")
 
+def replace_date_vn(match):
+    day, month, year = match.groups()
+    return f" ngày {num2str(day)} tháng {num2str(month)} năm {verbalize_digit(year)} "
 
-def replace_date(match) -> str:
-    """Chuyển ngày tháng từ tiếng Trung sang tiếng Việt"""
-    year = match.group(1)
-    month = match.group(3)
-    day = match.group(5)
-    result = ""
-    # Tiếng Việt đọc Ngày -> Tháng -> Năm, nhưng regex này đang bắt Năm -> Tháng -> Ngày
-    # Để an toàn, tôi giữ nguyên thứ tự bắt nhưng đổi chữ Năm, Tháng, Ngày
-    if day:
-        result += f"ngày {verbalize_cardinal(day)} "
-    if month:
-        result += f"tháng {verbalize_cardinal(month)} "
-    if year:
-        result += f"năm {verbalize_digit(year)}"
-    return result.strip()
-
-
-# Regex nhận diện ngày tháng kiểu: 2026-02-03
-RE_DATE2 = re.compile(r"(\d{4})([- /.])(0[1-9]|1[012])\2(0[1-9]|[12][0-9]|3[01])")
-
-
-def replace_date2(match) -> str:
-    year = match.group(1)
-    month = match.group(3)
-    day = match.group(4)
-    result = ""
-    if day:
-        result += f"ngày {verbalize_cardinal(day)} "
-    if month:
-        result += f"tháng {verbalize_cardinal(month)} "
-    if year:
-        result += f"năm {verbalize_digit(year)}"
-    return result.strip()
+def replace_date_iso(match):
+    year, sep, month, day = match.groups()
+    return f" ngày {num2str(day)} tháng {num2str(month)} năm {verbalize_digit(year)} "

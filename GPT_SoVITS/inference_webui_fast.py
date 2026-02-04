@@ -10,15 +10,15 @@ import psutil
 import os
 
 def set_high_priority():
-    """把当前 Python 进程设为 HIGH_PRIORITY_CLASS"""
+    """Set the current Python process to HIGH_PRIORITY_CLASS"""
     if os.name != "nt":
         return # 仅 Windows 有效
     p = psutil.Process(os.getpid())
     try:
         p.nice(psutil.HIGH_PRIORITY_CLASS)
-        print("已将进程优先级设为 High")
+        print("The process priority has been set to High.")
     except psutil.AccessDenied:
-        print("权限不足，无法修改优先级（请用管理员运行）")
+        print("Insufficient permissions to modify priority (please run as administrator)")
 set_high_priority()
 import json
 import logging
