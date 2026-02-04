@@ -1,4 +1,4 @@
-# constants.py - vi_normalization
+# text/vi_normalization/constants.py
 import re
 import string
 
