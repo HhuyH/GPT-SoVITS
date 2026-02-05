@@ -327,7 +327,48 @@ def change_uvr5():
 
 process_name_tts = i18n("TTS推理WebUI")
 
+import google.generativeai as genai
+from google.colab import userdata
 
+def ai_fix_list(file_path, _=None): # Giữ tham số thứ 2 để không lỗi WebUI cũ
+    if not os.path.exists(file_path): return f"❌ Không thấy file: {file_path}"
+    
+    try:
+        # Tự động lấy key từ Colab Secrets (Tên nhãn phải là GEMINI_API_KEY)
+        API_KEY = userdata.get('GEMINI_API_KEY')
+        
+        genai.configure(api_key=API_KEY)
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        
+        with open(file_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        
+        prompt = f"""bạn là một chuyên gia biên tập nội dung chuyên nghiệp cho hệ thống TTS (Text-to-Speech).
+        
+        NHIỆM VỤ:
+        1. Đọc qua danh sách dữ liệu dưới đây để tự xác định chủ đề, giọng điệu và ngữ cảnh của người nói.
+        2. Dựa trên ngữ cảnh đó, hãy sửa lại các lỗi chính tả, lỗi nghe nhầm (homophones) hoặc lỗi sai dấu mà AI Whisper thường mắc phải.
+        3. Đảm bảo câu văn trôi chảy, tự nhiên theo đúng phong cách của chủ đề đó (tâm sự, giảng bài, kể chuyện, v.v.).
+
+        QUY TẮC CẤM:
+        - KHÔNG thay đổi định dạng gốc: 'path|speaker|lang|text'.
+        - GIỮ NGUYÊN các dấu gạch đứng '|'. Chỉ sửa nội dung 'text' sau dấu '|' cuối cùng.
+        - CHỈ trả về danh sách đã sửa, tuyệt đối không giải thích thêm.
+        - Giữ nguyên các từ lóng hoặc từ địa phương nếu nó có ý đồ biểu cảm rõ ràng.
+
+        DANH SÁCH DỮ LIỆU:
+        {chr(10).join(lines)}"""
+        
+        response = model.generate_content(prompt)
+        
+        # Ghi đè lại file cũ
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(response.text.strip())
+            
+        return "✅ AI đã bốc Key từ Secrets và 'dọn rác' xong! Quá khỏe ông giáo ơi."
+    except Exception as e:
+        return f"❌ Lỗi: {str(e)} (Ông giáo nhớ bật Notebook access trong mục Secrets nhé!)"
+    
 def change_tts_inference(bert_path, cnhubert_base_path, gpu_number, gpt_path, sovits_path, batched_infer_enabled):
     global p_tts_inference
     if batched_infer_enabled:
@@ -1453,27 +1494,44 @@ with gr.Blocks(title="GPT-SoVITS WebUI", analytics_enabled=False, js=js, css=css
                 asr_model.change(change_size_choices, [asr_model], [asr_size])
                 asr_model.change(change_precision_choices, [asr_model], [asr_precision])
 
-            with gr.Accordion(label="0d-" + i18n("语音文本校对标注工具")):
+            # with gr.Accordion(label="0d-" + i18n("语音文本校对标注工具")):
+            #     with gr.Row():
+            #         with gr.Column(scale=3):
+            #             with gr.Row():
+            #                 path_list = gr.Textbox(
+            #                     label=i18n("标注文件路径 (含文件后缀 *.list)"),
+            #                     value="D:\\RVC1006\\GPT-SoVITS\\raw\\xxx.list",
+            #                     interactive=True,
+            #                 )
+            #                 label_info = gr.Textbox(label=process_info(process_name_subfix, "info"))
+            #         open_label = gr.Button(
+            #             value=process_info(process_name_subfix, "open"), variant="primary", visible=True
+            #         )
+            #         close_label = gr.Button(
+            #             value=process_info(process_name_subfix, "close"), variant="primary", visible=False
+            #         )
+
+            #     open_label.click(change_label, [path_list], [label_info, open_label, close_label])
+            #     close_label.click(change_label, [path_list], [label_info, open_label, close_label])
+            #     open_uvr5.click(change_uvr5, [], [uvr5_info, open_uvr5, close_uvr5])
+            #     close_uvr5.click(change_uvr5, [], [uvr5_info, open_uvr5, close_uvr5])
+            
+            with gr.Accordion(label="0d-" + i18n("AI Fixer script of .list (Gemini)")):
                 with gr.Row():
                     with gr.Column(scale=3):
-                        with gr.Row():
-                            path_list = gr.Textbox(
-                                label=i18n("标注文件路径 (含文件后缀 *.list)"),
-                                value="D:\\RVC1006\\GPT-SoVITS\\raw\\xxx.list",
-                                interactive=True,
-                            )
-                            label_info = gr.Textbox(label=process_info(process_name_subfix, "info"))
-                    open_label = gr.Button(
-                        value=process_info(process_name_subfix, "open"), variant="primary", visible=True
-                    )
-                    close_label = gr.Button(
-                        value=process_info(process_name_subfix, "close"), variant="primary", visible=False
-                    )
+                        path_list = gr.Textbox(
+                            label=i18n("location file .list need to fix"),
+                            value="logs/Base_nu/2-name2text.txt", # Trỏ thẳng vào file vừa tạo
+                            interactive=True,
+                        )
+                        gemini_key = gr.Textbox(label="Gemini API Key", placeholder="Dán key vào đây...", type="password")
+                        label_info = gr.Textbox(label="Trạng thái xử lý AI", value="Sẵn sàng")
+                    
+                    # Nút AI thần thánh thay cho nút mở WebUI cũ
+                    run_ai_fix = gr.Button(value="🚀 AI TỰ ĐỘNG SỬA LỖI", variant="primary")
 
-                open_label.click(change_label, [path_list], [label_info, open_label, close_label])
-                close_label.click(change_label, [path_list], [label_info, open_label, close_label])
-                open_uvr5.click(change_uvr5, [], [uvr5_info, open_uvr5, close_uvr5])
-                close_uvr5.click(change_uvr5, [], [uvr5_info, open_uvr5, close_uvr5])
+                # Gọi hàm xử lý (Tôi sẽ viết hàm ai_fix_list ở dưới)
+                run_ai_fix.click(ai_fix_list, [path_list, gemini_key], [label_info])
 
         with gr.TabItem(i18n("1-GPT-SoVITS-TTS")):
             with gr.Accordion(i18n("微调模型信息")):

@@ -94,10 +94,10 @@ if os.path.exists(txt_path) == False:
                 if os.path.exists(path_bert) == False and lan == "zh":
                     bert_feature = get_bert_feature(norm_text, word2ph)
                     assert bert_feature.shape[-1] == len(phones)
-                    # torch.save(bert_feature, path_bert)
                     my_save(bert_feature, path_bert)
+                
+                # ĐẢM BẢO DÒNG NÀY NẰM NGOÀI CÁI IF lan == "zh"
                 phones = " ".join(phones)
-                # res.append([name,phones])
                 res.append([name, phones, word2ph, norm_text])
             except:
                 print(name, text, traceback.format_exc())
@@ -123,6 +123,9 @@ if os.path.exists(txt_path) == False:
         "yue": "yue",
         "YUE": "yue",
         "Yue": "yue",
+        "VI": "vi",
+        "vi": "vi",
+        "Vi": "vi",
     }
     for line in lines[int(i_part) :: int(all_parts)]:
         try:

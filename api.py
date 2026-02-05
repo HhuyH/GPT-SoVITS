@@ -577,6 +577,10 @@ def get_phones_and_bert(text, language, version, final=False):
                 tmp["lang"] = "yue"
             langlist.append(tmp["lang"])
             textlist.append(tmp["text"])
+    elif language == "vi":
+        for tmp in LangSegmenter.getTexts(text):
+            langlist.append(tmp["lang"])
+            textlist.append(tmp["text"])
     else:
         for tmp in LangSegmenter.getTexts(text):
             if langlist:
