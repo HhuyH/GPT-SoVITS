@@ -2,6 +2,7 @@
 
 import sys
 import os
+os.environ["TORCHAUDIO_USE_BACKEND_DISPATCHER"] = "0"
 
 inp_text = os.environ.get("inp_text")
 inp_wav_dir = os.environ.get("inp_wav_dir")

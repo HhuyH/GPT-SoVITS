@@ -330,8 +330,26 @@ process_name_tts = i18n("TTS推理WebUI")
 import google.generativeai as genai
 from google.colab import userdata
 
-def ai_fix_list(file_path, _=None): # Giữ tham số thứ 2 để không lỗi WebUI cũ
-    if not os.path.exists(file_path): return f"❌ Không thấy file: {file_path}"
+# --- BƯỚC 1: BỐC KEY SẴN Ở ĐÂY (CHẠY TRƯỚC KHI MỞ WEBUI) ---
+try:
+    GLOBAL_GEMINI_KEY = userdata.get('GEMINI_API_KEY')
+except Exception:
+    GLOBAL_GEMINI_KEY = None
+    
+def ai_fix_list(file_path, api_key_input=None):
+    if not os.path.exists(file_path): 
+        return f"❌ Không thấy file: {file_path}"
+    
+    # --- LOGIC LẤY KEY LINH HOẠT ---
+    target_key = None
+    
+    # --- LOGIC LẤY KEY LINH HOẠT ---
+    # Ưu tiên 1: Key ông giáo dán vào ô Textbox (Nếu có)
+    # Ưu tiên 2: Key mình đã bốc sẵn từ Secrets lúc nãy
+    target_key = (api_key_input or "").strip() or GLOBAL_GEMINI_KEY
+            
+    if not target_key:
+        return "❌ Lỗi: Không tìm thấy API Key! (Hãy dán vào ô nhập hoặc cài trong Secrets)"
     
     try:
         # Tự động lấy key từ Colab Secrets (Tên nhãn phải là GEMINI_API_KEY)
@@ -1494,44 +1512,44 @@ with gr.Blocks(title="GPT-SoVITS WebUI", analytics_enabled=False, js=js, css=css
                 asr_model.change(change_size_choices, [asr_model], [asr_size])
                 asr_model.change(change_precision_choices, [asr_model], [asr_precision])
 
-            # with gr.Accordion(label="0d-" + i18n("语音文本校对标注工具")):
-            #     with gr.Row():
-            #         with gr.Column(scale=3):
-            #             with gr.Row():
-            #                 path_list = gr.Textbox(
-            #                     label=i18n("标注文件路径 (含文件后缀 *.list)"),
-            #                     value="D:\\RVC1006\\GPT-SoVITS\\raw\\xxx.list",
-            #                     interactive=True,
-            #                 )
-            #                 label_info = gr.Textbox(label=process_info(process_name_subfix, "info"))
-            #         open_label = gr.Button(
-            #             value=process_info(process_name_subfix, "open"), variant="primary", visible=True
-            #         )
-            #         close_label = gr.Button(
-            #             value=process_info(process_name_subfix, "close"), variant="primary", visible=False
-            #         )
-
-            #     open_label.click(change_label, [path_list], [label_info, open_label, close_label])
-            #     close_label.click(change_label, [path_list], [label_info, open_label, close_label])
-            #     open_uvr5.click(change_uvr5, [], [uvr5_info, open_uvr5, close_uvr5])
-            #     close_uvr5.click(change_uvr5, [], [uvr5_info, open_uvr5, close_uvr5])
-            
-            with gr.Accordion(label="0d-" + i18n("AI Fixer script of .list (Gemini)")):
+            with gr.Accordion(label="0d-" + i18n("语音文本校对标注工具")):
                 with gr.Row():
                     with gr.Column(scale=3):
-                        path_list = gr.Textbox(
-                            label=i18n("location file .list need to fix"),
-                            value="logs/Base_nu/2-name2text.txt", # Trỏ thẳng vào file vừa tạo
-                            interactive=True,
-                        )
-                        gemini_key = gr.Textbox(label="Gemini API Key", placeholder="Dán key vào đây...", type="password")
-                        label_info = gr.Textbox(label="Trạng thái xử lý AI", value="Sẵn sàng")
-                    
-                    # Nút AI thần thánh thay cho nút mở WebUI cũ
-                    run_ai_fix = gr.Button(value="🚀 AI TỰ ĐỘNG SỬA LỖI", variant="primary")
+                        with gr.Row():
+                            path_list = gr.Textbox(
+                                label=i18n("标注文件路径 (含文件后缀 *.list)"),
+                                value="D:\\RVC1006\\GPT-SoVITS\\raw\\xxx.list",
+                                interactive=True,
+                            )
+                            label_info = gr.Textbox(label=process_info(process_name_subfix, "info"))
+                    open_label = gr.Button(
+                        value=process_info(process_name_subfix, "open"), variant="primary", visible=True
+                    )
+                    close_label = gr.Button(
+                        value=process_info(process_name_subfix, "close"), variant="primary", visible=False
+                    )
 
-                # Gọi hàm xử lý (Tôi sẽ viết hàm ai_fix_list ở dưới)
-                run_ai_fix.click(ai_fix_list, [path_list, gemini_key], [label_info])
+                open_label.click(change_label, [path_list], [label_info, open_label, close_label])
+                close_label.click(change_label, [path_list], [label_info, open_label, close_label])
+                open_uvr5.click(change_uvr5, [], [uvr5_info, open_uvr5, close_uvr5])
+                close_uvr5.click(change_uvr5, [], [uvr5_info, open_uvr5, close_uvr5])
+            
+            # with gr.Accordion(label="0d-" + i18n("AI Fixer script of .list (Gemini)")):
+            #     with gr.Row():
+            #         with gr.Column(scale=3):
+            #             path_list = gr.Textbox(
+            #                 label=i18n("location file .list need to fix"),
+            #                 value="logs/Base_nu/2-name2text.txt", # Trỏ thẳng vào file vừa tạo
+            #                 interactive=True,
+            #             )
+            #             gemini_key = gr.Textbox(label="Gemini API Key", placeholder="Dán key vào đây...", type="password")
+            #             label_info = gr.Textbox(label="Trạng thái xử lý AI", value="Sẵn sàng")
+                    
+            #         # Nút AI thần thánh thay cho nút mở WebUI cũ
+            #         run_ai_fix = gr.Button(value="🚀 AI TỰ ĐỘNG SỬA LỖI", variant="primary")
+
+            #     # Gọi hàm xử lý (Tôi sẽ viết hàm ai_fix_list ở dưới)
+            #     run_ai_fix.click(ai_fix_list, [path_list, gemini_key], [label_info])
 
         with gr.TabItem(i18n("1-GPT-SoVITS-TTS")):
             with gr.Accordion(i18n("微调模型信息")):

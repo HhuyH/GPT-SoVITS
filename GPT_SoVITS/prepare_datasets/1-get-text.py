@@ -141,6 +141,10 @@ if os.path.exists(txt_path) == False:
     process(todo, res)
     opt = []
     for name, phones, word2ph, norm_text in res:
-        opt.append("%s\t%s\t%s\t%s" % (name, phones, word2ph, norm_text))
+        # DÒNG GỐC
+        # opt.append("%s\t%s\t%s\t%s" % (name, phones, word2ph, norm_text))
+        
+        
+        opt.append("%s|%s|%s|%s" % (name, phones, word2ph, norm_text))
     with open(txt_path, "w", encoding="utf8") as f:
         f.write("\n".join(opt) + "\n")

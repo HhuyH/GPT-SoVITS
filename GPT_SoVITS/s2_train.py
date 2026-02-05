@@ -2,6 +2,7 @@ import warnings
 
 warnings.filterwarnings("ignore")
 import os
+os.environ["TORCHAUDIO_USE_BACKEND_DISPATCHER"] = "0"
 
 import utils
 
