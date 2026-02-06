@@ -42,7 +42,7 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
             lines = f.read().strip("\n").split("\n")
 
         for line in lines:
-            tmp = line.split("\t")
+            tmp = line.split("\t") if "\t" in line else line.split("|")
             if len(tmp) != 4:
                 continue
             self.phoneme_data[tmp[0]] = [tmp[1]]
@@ -298,7 +298,7 @@ class TextAudioSpeakerLoaderV3(torch.utils.data.Dataset):
             lines = f.read().strip("\n").split("\n")
 
         for line in lines:
-            tmp = line.split("\t")
+            tmp = line.split("\t") if "\t" in line else line.split("|")
             if len(tmp) != 4:
                 continue
             self.phoneme_data[tmp[0]] = [tmp[1]]
@@ -536,7 +536,7 @@ class TextAudioSpeakerLoaderV4(torch.utils.data.Dataset):
             lines = f.read().strip("\n").split("\n")
 
         for line in lines:
-            tmp = line.split("\t")
+            tmp = line.split("\t") if "\t" in line else line.split("|")
             if len(tmp) != 4:
                 continue
             self.phoneme_data[tmp[0]] = [tmp[1]]
@@ -747,7 +747,7 @@ class TextAudioSpeakerLoaderV3b(torch.utils.data.Dataset):
             lines = f.read().strip("\n").split("\n")
 
         for line in lines:
-            tmp = line.split("\t")
+            tmp = line.split("\t") if "\t" in line else line.split("|")
             if len(tmp) != 4:
                 continue
             self.phoneme_data[tmp[0]] = [tmp[1]]

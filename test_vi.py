@@ -1,45 +1,61 @@
 import sys
 import os
 
-# Thêm đường dẫn để Python tìm thấy module text
+# Đảm bảo Python tìm thấy module text
 sys.path.append(os.getcwd())
 
-# Import hàm g2p từ file vietnamese.py ông vừa tạo
 try:
     from text.vietnamese import g2p
-    print("✅ Đã kết nối được với 'pháp sư' Vietnamese.py")
+    print("✅ Đã kết nối với 'pháp sư' Vietnamese.py mới.")
 except Exception as e:
     print(f"❌ Lỗi Import: {e}")
     sys.exit()
 
-def run_test():
-    # Câu test đầy đủ "đồ chơi": Tiếng Việt + Số + Đơn vị + Dấu câu
-    text = "Chào ông giáo, hôm nay ngày 03/02 tôi mua 5kg gạo hết 150.000 đồng."
+def test_specific_lines():
+    # Danh sách các câu ông giáo bị lỗi UNK lúc nãy
+    test_cases = [
+        "Chào bạn, lại là vun đây từ Góc Nhỏ mang tên Được Khỏe Vui.",
+        "để ở đâu rồi? Chắc hẳn bạn cũng đã quen với cái cảnh này.",
+        "Hoặc là mở suy nghĩ trong đầu, tạo cái file mới đặt tên là đơn xin nghỉ việc.",
+        "Cái cảm giác kiệt sức cứ triền miên. Nỗi ám ảnh tối chủ nhật chuẩn bị cho sáng thứ hai nó lại quay lại.",
+        "Thì chào mừng bạn, hôm nay chúng ta sẽ nói thật với nhau",
+        "Nhưng lại đóng băng vì sợ hãi. Nhưng trước tiên, mình cần bạn biết:",
+        "Đó là trách nhiệm của người lớn đang đè nặng.",
+        "Hãy thở sâu. Bạn không đơn độc. Và quan trọng,",
+        "Và bây giờ, trước khi mà bạn có thể nghỉ việc",
+        "Thì chúng ta cần can đảm gọi tên những cái sợi xích tâm lý vô hình đang kìm hãm bạn lại. Vì đôi khi,",
+        "Vậy thì, mắt xích đầu tiên: nỗi sợ mất đi bản sắc.",
+        "cái sự đào sâu hơn một chút ấy thì bạn sẽ thấy rằng",
+        "Anh chị làm nghề gì? gần như là câu cửa miệng. Nó thành một phần định nghĩa con người của mình luôn rồi.",
+        "Identity fusion, khi mà mình vô tình hòa quyện toàn bộ giá trị bản thân vào công việc."
+    ]
+
+    print(f"\n{'='*20} BẮT ĐẦU KIỂM TRA BIẾN HÌNH {'='*20}")
     
-    print(f"\n--- ĐANG XỬ LÝ VĂN BẢN ---")
-    print(f"Gốc: {text}")
-    
-    try:
-        # Chạy hàm g2p (nó sẽ gọi cả normalize bên trong)
-        phones, word2ph = g2p(text)
-        
-        print(f"\n--- KẾT QUẢ ---")
-        print(f"Âm vị (Phones): {phones}")
-        print(f"Số lượng âm vị mỗi từ (Word2ph): {word2ph}")
-        
-        # Kiểm tra xem có dấu câu nào bị rơi rụng không
-        if "," in phones and "." in phones:
-            print("\n✅ Dấu câu được giữ lại chuẩn xác.")
+    all_clean = True
+    for i, text in enumerate(test_cases, 1):
+        try:
+            phones, word2ph = g2p(text)
+            phones_str = " ".join(phones)
             
-        # Kiểm tra số đã biến thành chữ chưa
-        phones_str = " ".join(phones)
-        if "tram" in phones_str or "nghin" in phones_str:
-            print("✅ Hệ thống Normalization đã biến '150.000' thành chữ chuẩn Việt.")
+            print(f"\nCâu {i}: {text}")
+            print(f"Result: {phones_str}")
             
-    except Exception as e:
-        print(f"❌ Lỗi khi chạy g2p: {e}")
-        import traceback
-        traceback.print_exc()
+            if "UNK" in phones_str:
+                print(f"❌ VẪN CÒN LỖI UNK Ở ĐÂY!")
+                all_clean = False
+            else:
+                print(f"✅ SẠCH BÓNG QUÂN THÙ!")
+                
+        except Exception as e:
+            print(f"❌ Lỗi xử lý câu {i}: {e}")
+            all_clean = False
+
+    print(f"\n{'='*60}")
+    if all_clean:
+        print("🎉 CHÚC MỪNG ÔNG GIÁO! Không còn một chữ UNK nào trong đống câu lỗi cũ.")
+    else:
+        print("⚠️ Vẫn còn sót vài từ lạ, ông giáo hãy quăng log lên tôi xem lại.")
 
 if __name__ == "__main__":
-    run_test()
+    test_specific_lines()
