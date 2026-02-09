@@ -91,7 +91,7 @@ if os.path.exists(txt_path) == False:
                 print(name)
                 phones, word2ph, norm_text = clean_text(text.replace("%", "-").replace("￥", ","), lan, version)
                 path_bert = "%s/%s.pt" % (bert_dir, name)
-                if os.path.exists(path_bert) == False and lan == "zh":
+                if os.path.exists(path_bert) == False and (lan == "zh" or lan == "vi"):
                     bert_feature = get_bert_feature(norm_text, word2ph)
                     assert bert_feature.shape[-1] == len(phones)
                     my_save(bert_feature, path_bert)
@@ -142,9 +142,7 @@ if os.path.exists(txt_path) == False:
     opt = []
     for name, phones, word2ph, norm_text in res:
         # DÒNG GỐC
-        # opt.append("%s\t%s\t%s\t%s" % (name, phones, word2ph, norm_text))
+        opt.append("%s\t%s\t%s\t%s" % (name, phones, word2ph, norm_text))
         
-        
-        opt.append("%s|%s|%s|%s" % (name, phones, word2ph, norm_text))
     with open(txt_path, "w", encoding="utf8") as f:
         f.write("\n".join(opt) + "\n")

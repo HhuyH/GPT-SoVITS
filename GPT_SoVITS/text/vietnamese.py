@@ -17,9 +17,13 @@ with open(os.path.join(current_file_path, "opencpop-strict.txt"), "r", encoding=
 normalizer = TextNormalizer()
 
 def text_normalize(text):
-    res = normalizer.normalize(text)
+    # 1. Ép về chữ thường ngay từ đầu để Regex dễ làm việc
+    res = text.lower() 
+    res = normalizer.normalize(res)
     if isinstance(res, list): res = " ".join(res)
-    res = re.sub(r'[^a-zA-Z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ\s.,!?…]', '', res)
+    
+    # 2. Bộ lọc mới: Đã thêm chữ 'đ' và các ký tự đặc biệt tiếng Việt
+    res = re.sub(r'[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s.,!?…]', '', res)
     return res
 
 # --- 2. BẢNG MAP (Đã tinh chỉnh theo Opencpop) ---
