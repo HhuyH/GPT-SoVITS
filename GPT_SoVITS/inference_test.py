@@ -8,8 +8,8 @@ import shutil
 # BƯỚC 0: THIẾT QUÂN LUẬT - ÉP BIẾN MÔI TRƯỜNG
 # Lệnh này sẽ "giết" con ma e15 và Genshin Impact ngay lập tức
 # =========================================================
-GPT_MODEL_XIN = "GPT_weights/base_nam-e30.ckpt"
-SOVITS_MODEL_XIN = "SoVITS_weights/base_nam_e1_s748.pth"
+GPT_MODEL_XIN = "GPT_weights/base_nam-e50.ckpt"
+SOVITS_MODEL_XIN = "SoVITS_weights/base_nam_e15_s4815.pth"
 
 os.environ["gpt_path"] = GPT_MODEL_XIN
 os.environ["sovits_path"] = SOVITS_MODEL_XIN
@@ -37,11 +37,18 @@ def run_inference_from_json(item):
         "-m", "GPT_SoVITS.inference_cli",
         "--gpt_model", GPT_MODEL_XIN, 
         "--sovits_model", SOVITS_MODEL_XIN, 
-        # "--ref_audio", r"D:\AI Audio\voices\Audios\Giong_nu_doc_podcast_cham_rai_ro_chu\cut_9s\vocals.wav",
-        # "--ref_text", r"D:\AI Audio\voices\Audios\Giong_nu_doc_podcast_cham_rai_ro_chu\cut_9s\cut_9s.txt",
-        "--ref_audio", r"D:\Code\GPT-SoVITS\refs\male_clear.wav",
-        "--ref_text", r"D:\Code\GPT-SoVITS\refs\male_clear.txt",
-        "--ref_language", "zh", 
+        
+        "--ref_audio", r"D:\AI Audio\voices\Audios\fonos_nam_voice\fonos_nam_vocals_cut.wav",
+        "--ref_text", r"D:\AI Audio\voices\Audios\fonos_nam_voice\fonos_nam_vocals_cut.txt",
+        "--ref_language", "vi",
+        
+        # "--ref_audio", r"D:\AI Audio\voices\refs\podcast_dot_nhien_khoc_ref.wav",
+        # "--ref_text", r"D:\AI Audio\voices\refs\podcast_dot_nhien_khoc_ref.txt",
+        # "--ref_language", "vi",
+        
+        # "--ref_audio", r"D:\Code\GPT-SoVITS\refs\male_clear.wav",
+        # "--ref_text", r"D:\Code\GPT-SoVITS\refs\male_clear.txt",
+        # "--ref_language", "zh", 
         
         "--target_text", temp_file,
         "--target_language", "vi", 

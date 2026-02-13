@@ -123,7 +123,7 @@ def set_default():
     if version not in v3v4set:
         default_sovits_epoch = 8
         default_sovits_save_every_epoch = 4
-        max_sovits_epoch = 25  # 40
+        max_sovits_epoch = 100  # 25
         max_sovits_save_every_epoch = 25  # 10
     else:
         default_sovits_epoch = 2
@@ -1872,7 +1872,7 @@ with gr.Blocks(title="GPT-SoVITS WebUI", analytics_enabled=False, js=js, css=css
                                 )
                                 total_epoch1Bb = gr.Slider(
                                     minimum=2,
-                                    maximum=50,
+                                    maximum=250,
                                     step=1,
                                     label=i18n("总训练轮数total_epoch"),
                                     value=15,
