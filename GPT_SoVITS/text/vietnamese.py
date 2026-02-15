@@ -1,165 +1,101 @@
+# vietnamese.py
+
 import re
-import os
 from text.symbols import punctuation
 from text.vi_normalization.text_normlization import TextNormalizer
 
-# --- 1. LOAD TỪ ĐIỂN PNYIN CHUẨN ---
-current_file_path = os.path.dirname(__file__)
-pinyin_to_symbol_map = {}
-valid_pinyins = set()
-
-with open(os.path.join(current_file_path, "opencpop-strict.txt"), "r", encoding="utf-8") as f:
-    for line in f:
-        key, val = line.strip().split("\t")
-        pinyin_to_symbol_map[key] = val
-        valid_pinyins.add(key)
-
 normalizer = TextNormalizer()
 
-def text_normalize(text):
-    # 1. Ép về chữ thường ngay từ đầu để Regex dễ làm việc
-    res = text.lower() 
-    res = normalizer.normalize(res)
-    if isinstance(res, list): res = " ".join(res)
-    
-    # 2. Bộ lọc mới: Đã thêm chữ 'đ' và các ký tự đặc biệt tiếng Việt
-    res = re.sub(r'[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s.,!?…]', '', res)
-    return res
+# -----------------------
+# Tone extraction
+# -----------------------
 
-# --- 2. BẢNG MAP (Đã tinh chỉnh theo Opencpop) ---
-vowel_map = {
-    'a': 'a1', 'á': 'a2', 'à': 'a4', 'ả': 'a3', 'ã': 'a3', 'ạ': 'a4',
-    'ă': 'a1', 'ắ': 'a2', 'ằ': 'a4', 'ẳ': 'a3', 'ẵ': 'a3', 'ặ': 'a4',
-    'â': 'e1', 'ấ': 'e2', 'ầ': 'e4', 'ẩ': 'e3', 'ẫ': 'e3', 'ậ': 'e4',
-    'e': 'e1', 'é': 'e2', 'è': 'e4', 'ẻ': 'e3', 'ẽ': 'e3', 'ẹ': 'e4',
-    'ê': 'ei1', 'ế': 'ei2', 'ề': 'ei4', 'ể': 'ei3', 'ễ': 'ei3', 'ệ': 'ei4',
-    'i': 'i1', 'í': 'i2', 'ì': 'i4', 'ỉ': 'i3', 'ĩ': 'i3', 'ị': 'i4',
-    'o': 'o1', 'ó': 'o2', 'ò': 'o4', 'ỏ': 'o3', 'õ': 'o3', 'ọ': 'o4',
-    'ô': 'ou1', 'ố': 'ou2', 'ồ': 'ou4', 'ổ': 'ou3', 'ỗ': 'ou3', 'ộ': 'ou4',
-    'ơ': 'e1', 'ớ': 'e2', 'ờ': 'e4', 'ở': 'e3', 'ỡ': 'e3', 'ợ': 'e4',
-    'u': 'u1', 'ú': 'u2', 'ù': 'u4', 'ủ': 'u3', 'ũ': 'u3', 'ụ': 'u4',
-    'ư': 'v1', 'ứ': 'v2', 'ừ': 'v4', 'ử': 'v3', 'ữ': 'v3', 'ự': 'v4', # Map ư -> v (ü)
-    'y': 'i1', 'ý': 'i2', 'ỳ': 'i4', 'ỷ': 'i3', 'ỹ': 'i3', 'ỵ': 'i4',
+tone_map = {
+    "á":"T2","ắ":"T2","ấ":"T2","é":"T2","ế":"T2","í":"T2",
+    "ó":"T2","ố":"T2","ớ":"T2","ú":"T2","ứ":"T2","ý":"T2",
+
+    "à":"T4","ằ":"T4","ầ":"T4","è":"T4","ề":"T4","ì":"T4",
+    "ò":"T4","ồ":"T4","ờ":"T4","ù":"T4","ừ":"T4","ỳ":"T4",
+
+    "ả":"T3","ẳ":"T3","ẩ":"T3","ẻ":"T3","ể":"T3","ỉ":"T3",
+    "ỏ":"T3","ổ":"T3","ở":"T3","ủ":"T3","ử":"T3","ỷ":"T3",
+
+    "ã":"T5","ẵ":"T5","ẫ":"T5","ẽ":"T5","ễ":"T5","ĩ":"T5",
+    "õ":"T5","ỗ":"T5","ỡ":"T5","ũ":"T5","ữ":"T5","ỹ":"T5",
+
+    "ạ":"T6","ặ":"T6","ậ":"T6","ẹ":"T6","ệ":"T6","ị":"T6",
+    "ọ":"T6","ộ":"T6","ợ":"T6","ụ":"T6","ự":"T6","ỵ":"T6"
 }
 
-# --- 3. HÀM CHUYỂN ĐỔI THÔNG MINH ---
-def vi_to_pinyin(word):
-    word = word.lower()
-    
-    # 1. [Dictionary Fix] Những từ tiếng Việt đặc biệt map cứng
-    hardcode_map = {
-        "ông": "weng1", "ong": "weng1", "không": "kong4",
-        "anh": "yan1", "em": "en1", "yêu": "you1",
-        "tôi": "dui1", "người": "wei2", "gì": "shen2", 
-        "cái": "gai4", "này": "nei4", "đâu": "dou1",
-        "chào": "zhao4", "giáo": "jiao4", "trời": "zhei2", 
-        "quá": "gua4", "là": "la4", "của": "ge3",
-        "hôm": "hong1", "nay": "nei1", "ngày": "nei2", 
-        "tháng": "tang4", "năm": "nan1"
+def remove_tone_char(char):
+    base_map = {
+        "á":"a","à":"a","ả":"a","ã":"a","ạ":"a",
+        "ă":"ă","ắ":"ă","ằ":"ă","ẳ":"ă","ẵ":"ă","ặ":"ă",
+        "â":"â","ấ":"â","ầ":"â","ẩ":"â","ẫ":"â","ậ":"â",
+        "é":"e","è":"e","ẻ":"e","ẽ":"e","ẹ":"e",
+        "ê":"ê","ế":"ê","ề":"ê","ể":"ê","ễ":"ê","ệ":"ê",
+        "í":"i","ì":"i","ỉ":"i","ĩ":"i","ị":"i",
+        "ó":"o","ò":"o","ỏ":"o","õ":"o","ọ":"o",
+        "ô":"ô","ố":"ô","ồ":"ô","ổ":"ô","ỗ":"ô","ộ":"ô",
+        "ơ":"ơ","ớ":"ơ","ờ":"ơ","ở":"ơ","ỡ":"ơ","ợ":"ơ",
+        "ú":"u","ù":"u","ủ":"u","ũ":"u","ụ":"u",
+        "ư":"ư","ứ":"ư","ừ":"ư","ử":"ư","ữ":"ư","ự":"ư",
+        "ý":"y","ỳ":"y","ỷ":"y","ỹ":"y","ỵ":"y"
     }
-    if word in hardcode_map:
-        py_full = hardcode_map[word]
-        return py_full[:-1], py_full[-1]
+    return base_map.get(char, char)
 
-    # 2. Tách Phụ âm & Vần
-    initial = ""
-    consonants = {
-        "ngh": "n", "ng": "n", "ch": "zh", "tr": "zh", "gi": "j", "kh": "k", "ph": "f", 
-        "th": "t", "nh": "n", "qu": "g", "b": "b", "c": "k", "d": "z", "đ": "d", 
-        "g": "g", "h": "h", "k": "k", "l": "l", "m": "m", "n": "n", "p": "p", 
-        "r": "r", "s": "sh", "t": "d", "v": "w", "x": "s"
-    }
-    
-    sorted_cons = sorted(consonants.keys(), key=len, reverse=True)
-    for c_vi in sorted_cons:
-        if word.startswith(c_vi):
-            initial = consonants[c_vi]
-            word = word[len(c_vi):]
-            break
-            
-    # 3. Xử lý vần (Finals)
-    finals_map = {
-        "oanh": "uan", "ach": "a", "ich": "i", "uc": "u", 
-        "ang": "ang", "anh": "an", "inh": "in", "ien": "ian",
-        "yeu": "iu", "uou": "ou", "ung": "ong", "ai": "ai", 
-        "ao": "ao", "au": "ao", "ay": "ai", "âu": "ou",
-        "eo": "iao", "oa": "ua", "oe": "ue", "ua": "ua", "ia": "ia",
-        "ui": "ui", "uy": "wei", "ue": "ue", "uê": "ue",
-        "om": "ong", "am": "an", "em": "en", "im": "in",
-        "on": "un", "an": "an", "ên": "en", "in": "in",
-        "ep": "ie", "op": "uo", "ap": "a", "up": "u", "ip": "ie",
-        "at": "a", "ot": "uo", "ut": "u", "it": "i", "et": "ie"
-    }
-    
-    mapped_final = ""
-    res_tone = "1"
-    
-    matched_final = False
-    for f_vi, f_py in sorted(finals_map.items(), key=len, reverse=True):
-        if word.startswith(f_vi):
-            mapped_final = f_py
-            res_tone = "4" 
-            matched_final = True
-            break
-            
-    if not matched_final:
-        temp_final = ""
-        for char in word:
-            if char in vowel_map:
-                mapped = vowel_map[char]
-                temp_final += mapped[0]
-                if mapped[1] != "1": res_tone = mapped[1]
-            else:
-                temp_final += char
-        mapped_final = temp_final
+# -----------------------
+# Onset detection
+# -----------------------
 
-    # 4. 🛡️ CHIẾN THUẬT VÂY RÁP DIỆT UNK (MỚI)
-    pinyin = initial + mapped_final
-    
-    # Ưu tiên 1: Khớp hoàn toàn từ điển
-    if pinyin in valid_pinyins:
-        return pinyin, res_tone
-        
-    # Ưu tiên 2: Thử phụ âm đầu + nguyên âm đơn (Ví dụ: 'nguoi' lỗi -> 'nv')
-    if initial:
-        fallback_py = initial + (mapped_final[0] if mapped_final else "a")
-        if fallback_py in valid_pinyins:
-            return fallback_py, res_tone
-    else:
-        # Ưu tiên 3: Nếu không có phụ âm (ở, à...), map về nguyên âm chuẩn của Opencpop
-        no_init_map = {"a": "a", "e": "e", "o": "o", "u": "u", "i": "yi", "v": "yu"}
-        final_core = mapped_final[0] if mapped_final else "a"
-        return no_init_map.get(final_core, "a"), res_tone
+vi_onsets = [
+    "ngh","ng","nh","ch","gh","kh","ph","th","tr","gi",
+    "b","c","d","đ","g","h","k","l","m","n","p","q","r","s","t","v","x"
+]
 
-    # Ưu tiên cuối: Đường cùng - ép về âm 'ba' hoặc 'a'
-    final_safety = (initial + "a") if initial else "a"
-    return final_safety if final_safety in valid_pinyins else "a", "4"
+def split_onset(word):
+    for onset in sorted(vi_onsets, key=len, reverse=True):
+        if word.startswith(onset):
+            return onset, word[len(onset):]
+    return "", word
 
+# -----------------------
+# G2P
+# -----------------------
 
 def g2p(text):
-    text = text_normalize(text)
+    text = text.lower()
+    text = normalizer.normalize(text)
+
     words = re.findall(r'\w+|[^\w\s]', text, re.UNICODE)
-    phones_list = []
+
+    phones = []
     word2ph = []
 
     for word in words:
         if word in punctuation:
-            phones_list.append(word)
+            phones.append(word)
             word2ph.append(1)
             continue
-        
-        pinyin, tone = vi_to_pinyin(word)
-        
-        # Tra cứu lần cuối (chắc chắn có vì đã filter ở trên)
-        if pinyin in pinyin_to_symbol_map:
-            new_c, new_v = pinyin_to_symbol_map[pinyin].split(" ")
-            phones_list.extend([new_c, new_v + tone])
-            word2ph.append(2)
-        else:
-            # Trường hợp file opencpop thiếu sót hoặc lỗi lạ
-            # Fallback về 'a'
-            new_c, new_v = pinyin_to_symbol_map["a"].split(" ")
-            phones_list.extend([new_c, new_v + "5"])
-            word2ph.append(2)
 
-    return phones_list, word2ph
+        tone = "T1"
+        new_word = ""
+
+        for char in word:
+            if char in tone_map:
+                tone = tone_map[char]
+            new_word += remove_tone_char(char)
+
+        onset, rime = split_onset(new_word)
+
+        unit = []
+        if onset:
+            unit.append(onset)
+        if rime:
+            unit.append(rime)
+        unit.append(tone)
+
+        phones.extend(unit)
+        word2ph.append(len(unit))
+
+    return phones, word2ph

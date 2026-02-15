@@ -68,18 +68,19 @@ if os.path.exists(txt_path) == False:
     def get_bert_feature(text, word2ph):
         with torch.no_grad():
             inputs = tokenizer(text, return_tensors="pt")
-            for i in inputs:
-                inputs[i] = inputs[i].to(device)
-            res = bert_model(**inputs, output_hidden_states=True)
-            res = torch.cat(res["hidden_states"][-3:-2], -1)[0].cpu()[1:-1]
+            for k in inputs:
+                inputs[k] = inputs[k].to(device)
 
-        assert len(word2ph) == res.shape[0]
-        phone_level_feature = []
-        for i in range(len(word2ph)):
-            repeat_feature = res[i].repeat(word2ph[i], 1)
-            phone_level_feature.append(repeat_feature)
+            outputs = bert_model(**inputs, output_hidden_states=True)
+            hidden = outputs.hidden_states[-1][0]  # last layer
+            hidden = hidden[1:-1]  # remove CLS and SEP
 
-        phone_level_feature = torch.cat(phone_level_feature, dim=0)
+            # Lấy mean embedding toàn câu
+            sentence_embedding = hidden.mean(dim=0)
+
+        # Repeat embedding theo tổng số phone
+        total_phones = sum(word2ph)
+        phone_level_feature = sentence_embedding.unsqueeze(0).repeat(total_phones, 1)
 
         return phone_level_feature.T
 

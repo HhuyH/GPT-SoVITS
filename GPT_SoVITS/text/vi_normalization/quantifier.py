@@ -1,55 +1,73 @@
-# text/vi_normalization/quantifier.py
+# quantifier.py
+# coding=utf-8
+"""
+Unit & temperature normalization cho Vietnamese TTS.
+"""
 
 import re
 from .num import num2str
 
-# Regex nhận diện nhiệt độ
-RE_TEMPERATURE = re.compile(r"(-?)(\d+(\.\d+)?)(°C|℃|度|摄氏 độ)")
+# ==============================
+# Temperature
+# ==============================
 
-# Bảng tra cứu đơn vị đo lường Tiếng Việt
-measure_dict = {
-    "cm2": " xăng ti mét vuông",
-    "cm²": " xăng ti mét vuông",
-    "cm3": " xăng ti mét khối",
-    "cm³": " xăng ti mét khối",
-    "cm": " xăng ti mét",
-    "db": " đề xi ben",
-    "ds": " mili giây",
-    "kg": " ki lô gam",
-    "km": " ki lô mét",
-    "m2": " mét vuông",
-    "m²": " mét vuông",
-    "m³": " mét khối",
-    "m3": " mét khối",
-    "ml": " mi li lít",
-    "m": " mét",
-    "mm": " mi li mét",
-    "s": " giây",
+RE_TEMPERATURE = re.compile(
+    r"(-?)(\d+(?:\.\d+)?)[ ]*(°\s*[CFKcfk]|℃)"
+)
+
+temp_unit_map = {
+    "C": "độ C",
+    "F": "độ F",
+    "K": "độ K",
 }
 
-def replace_temperature(match) -> str:
-    """Biến -3°C thành 'âm ba độ' hoặc 'âm ba độ C'"""
-    sign = match.group(1)
-    temperature = match.group(2)
-    # sign: Tiếng Việt thường dùng "âm" cho nhiệt độ âm
-    sign_str = "âm " if sign else ""
-    temperature_str = num2str(temperature)
-    
-    # Mặc định đọc là "độ" hoặc "độ C"
-    result = f"{sign_str}{temperature_str} độ"
-    return result
+def replace_temperature(match):
+    sign = "âm " if match.group(1) else ""
+    value = num2str(match.group(2))
 
-def replace_measure(sentence) -> str:
-    """Thay thế các ký hiệu viết tắt trong câu bằng chữ viết đầy đủ"""
-    # Sắp xếp key theo độ dài giảm dần để tránh thay thế nhầm (ví dụ: 'cm' trước 'cm2')
+    raw_unit = match.group(3).upper().replace("°", "").strip()
+    unit_text = temp_unit_map.get(raw_unit, f"độ {raw_unit}")
+
+    return f"{sign}{value} {unit_text}"
+
+
+# ==============================
+# Units
+# ==============================
+
+measure_dict = {
+    "cm2": "xăng ti mét vuông",
+    "cm²": "xăng ti mét vuông",
+    "cm3": "xăng ti mét khối",
+    "cm³": "xăng ti mét khối",
+    "cm": "xăng ti mét",
+    "kg": "ki lô gam",
+    "km": "ki lô mét",
+    "m2": "mét vuông",
+    "m²": "mét vuông",
+    "m3": "mét khối",
+    "m³": "mét khối",
+    "ml": "mi li lít",
+    "m": "mét",
+    "mm": "mi li mét",
+    "s": "giây",
+}
+
+def replace_measure(text: str) -> str:
     sorted_keys = sorted(measure_dict.keys(), key=len, reverse=True)
-    
-    for q_notation in sorted_keys:
-        # Sử dụng regex: Số (\d+) + khoảng trắng (\s*) + đơn vị (\b)
-        # re.escape để xử lý các ký hiệu đặc biệt như % hay $
-        pattern = rf"(\d+)\s*{re.escape(q_notation)}\b"
-        
-        # Chỉ thay thế khi khớp đúng pattern "số + đơn vị"
-        sentence = re.sub(pattern, rf"\1 {measure_dict[q_notation]} ", sentence, flags=re.IGNORECASE)
-        
-    return sentence
+
+    for unit in sorted_keys:
+        pattern = rf"(\d+(\.\d+)?)\s*{re.escape(unit)}\b"
+
+        def repl(match):
+            number = num2str(match.group(1))
+            return f"{number} {measure_dict[unit]}"
+
+        text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
+
+    return text
+
+def normalize_quantifier(text):
+    text = RE_TEMPERATURE.sub(replace_temperature, text)
+    text = replace_measure(text)
+    return text

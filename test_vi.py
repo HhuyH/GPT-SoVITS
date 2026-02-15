@@ -1,49 +1,86 @@
-import sys
-import os
+# coding=utf-8
 
-# Đảm bảo Python tìm thấy module text
-sys.path.append(os.getcwd())
+from text.vietnamese import g2p
 
-try:
-    from text.vietnamese import g2p
-    print("✅ Đã kết nối với 'pháp sư' Vietnamese.py mới.")
-except Exception as e:
-    print(f"❌ Lỗi Import: {e}")
-    sys.exit()
 
-def test_specific_lines():
-    # Danh sách các câu ông giáo bị lỗi UNK lúc nãy
+def run_test():
+
     test_cases = [
-        "Càn khôn xoay chuyển, vạn vật thái bình. Thanh âm u huyền văng vẳng chốn thâm uyên.",
-        "Bậc chính nhân quân tử, chí tại tứ phương, mưu đồ đại sự, xoay vần tạo hóa, định đoạt giang sơn xã tắc"
-    ]
+        # ================= DATE =================
+        # "Hôm nay là 12/03/2024.",
+        # "Deadline: 2024-04-01.",
+        # "Sự kiện diễn ra ngày 1/1/2023.",
+        # "Ngày phát hành 2023/12/25.",
 
-    print(f"\n{'='*20} BẮT ĐẦU KIỂM TRA BIẾN HÌNH {'='*20}")
-    
-    all_clean = True
+        # ================= TIME =================
+        # "Họp lúc 08:05.",
+        # "Thời gian thi từ 8:30-10:45.",
+        # "Chương trình bắt đầu lúc 23:59:30.",
+        # "Mở cửa 07:00 sáng.",
+
+        # ================= PERCENT =================
+        # "Giảm giá 50%.",
+        # "Tăng 12.5%.",
+        # "Lãi suất là 7.25%.",
+
+        # # ================= FRACTION =================
+        # "Phân số là 3/4.",
+        # "Tỉ lệ 1/2 dân số.",
+        # "Công thức 5/10.",
+
+        # # ================= PHONE =================
+        # "Gọi ngay 0987654321.",
+        # "Liên hệ 0912345678 để biết thêm chi tiết.",
+        # "Hotline 19001234 hoạt động 24/7.",
+        # "Số bàn 024-12345678.",
+
+        # # ================= TEMPERATURE =================
+        # "Nhiệt độ hôm nay là 32°C.",
+        # "Trời lạnh -5°C vào ban đêm.",
+
+        # # ================= UNITS =================
+        # "Diện tích phòng là 25m2.",
+        # "Chiều dài 3m.",
+        # "Cân nặng 65kg.",
+        # "Tốc độ 60km.",
+        # "Thể tích 10cm3.",
+
+        # # ================= MATH =================
+        # "5 + 3 = 8.",
+        # "10 - 2 = 8.",
+        # "6 × 7 = 42.",
+        # "8 ÷ 2 = 4.",
+
+        # # ================= NEGATIVE & DECIMAL =================
+        "Nhiệt độ là -10 độ.",
+        "Số pi xấp xỉ 3.14.", # bug
+        "Giá là 1000000 đồng.",
+        "Phiên bản v2.1 phát hành hôm nay.", # bug
+
+        # # ================= MIXED =================
+        # "Meeting lúc 09:30 ngày 15/08/2024 tại TP.HCM.",
+        # "CPU chạy ở 3.5GHz.",
+        # "Tăng trưởng GDP 8.2% trong năm 2023.",
+        # "Kết quả là 1/3 tổng số 300 người.",
+    ]
+    print("=" * 70)
+    print("FULL G2P PIPELINE TEST")
+    print("=" * 70)
+
     for i, text in enumerate(test_cases, 1):
+        print(f"\nTest {i}")
+        print("INPUT :", text)
+
         try:
             phones, word2ph = g2p(text)
-            phones_str = " ".join(phones)
-            
-            print(f"\nCâu {i}: {text}")
-            print(f"Result: {phones_str}")
-            
-            if "UNK" in phones_str:
-                print(f"❌ VẪN CÒN LỖI UNK Ở ĐÂY!")
-                all_clean = False
-            else:
-                print(f"✅ SẠCH BÓNG QUÂN THÙ!")
-                
-        except Exception as e:
-            print(f"❌ Lỗi xử lý câu {i}: {e}")
-            all_clean = False
 
-    print(f"\n{'='*60}")
-    if all_clean:
-        print("🎉 CHÚC MỪNG ÔNG GIÁO! Không còn một chữ UNK nào trong đống câu lỗi cũ.")
-    else:
-        print("⚠️ Vẫn còn sót vài từ lạ, ông giáo hãy quăng log lên tôi xem lại.")
+            print("PHONES :", phones)
+            print("WORD2PH:", word2ph)
+            print("TOTAL PHONES:", len(phones))
+
+        except Exception as e:
+            print("❌ ERROR:", e)
+
 
 if __name__ == "__main__":
-    test_specific_lines()
+    run_test()
