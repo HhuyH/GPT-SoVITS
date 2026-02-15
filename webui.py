@@ -1429,7 +1429,7 @@ with gr.Blocks(title="GPT-SoVITS WebUI", analytics_enabled=False, js=js, css=css
                                 maximum=n_cpu,
                                 step=1,
                                 label=i18n("切割使用的进程数"),
-                                value=4,
+                                value=2,
                                 interactive=True,
                             )
                             slicer_info = gr.Textbox(label=process_info(process_name_slice, "info"))
@@ -1634,7 +1634,7 @@ with gr.Blocks(title="GPT-SoVITS WebUI", analytics_enabled=False, js=js, css=css
                         with gr.Row():
                             bert_pretrained_dir = gr.Textbox(
                                 label=i18n("预训练中文BERT模型路径"),
-                                value="GPT_SoVITS/pretrained_models/bert-base-multilingual-cased"
+                                value="GPT_SoVITS/pretrained_models/bert-base-multilingual-cased",
                                 # value="GPT_SoVITS/pretrained_models/chinese-roberta-wwm-ext-large",
                                 interactive=False,
                                 lines=2,
