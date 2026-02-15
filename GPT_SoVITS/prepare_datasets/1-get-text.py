@@ -73,7 +73,7 @@ if os.path.exists(txt_path) == False:
             res = bert_model(**inputs, output_hidden_states=True)
             res = torch.cat(res["hidden_states"][-3:-2], -1)[0].cpu()[1:-1]
 
-        assert len(word2ph) == len(text)
+        assert len(word2ph) == res.shape[0]
         phone_level_feature = []
         for i in range(len(word2ph)):
             repeat_feature = res[i].repeat(word2ph[i], 1)
