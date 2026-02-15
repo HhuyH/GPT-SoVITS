@@ -9,7 +9,7 @@ import shutil
 # Lệnh này sẽ "giết" con ma e15 và Genshin Impact ngay lập tức
 # =========================================================
 GPT_MODEL_XIN = "GPT_weights/base_nam-e50.ckpt"
-SOVITS_MODEL_XIN = "SoVITS_weights/base_nam_e15_s4815.pth"
+SOVITS_MODEL_XIN = "SoVITS_weights/base_nam_e25_s7025.pth"
 
 os.environ["gpt_path"] = GPT_MODEL_XIN
 os.environ["sovits_path"] = SOVITS_MODEL_XIN

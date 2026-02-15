@@ -1634,7 +1634,8 @@ with gr.Blocks(title="GPT-SoVITS WebUI", analytics_enabled=False, js=js, css=css
                         with gr.Row():
                             bert_pretrained_dir = gr.Textbox(
                                 label=i18n("预训练中文BERT模型路径"),
-                                value="GPT_SoVITS/pretrained_models/chinese-roberta-wwm-ext-large",
+                                value="GPT_SoVITS/pretrained_models/bert-base-multilingual-cased"
+                                # value="GPT_SoVITS/pretrained_models/chinese-roberta-wwm-ext-large",
                                 interactive=False,
                                 lines=2,
                             )

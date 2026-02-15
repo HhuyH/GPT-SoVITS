@@ -94,10 +94,7 @@ if os.path.exists(txt_path) == False:
                 if os.path.exists(path_bert) == False and (lan == "zh" or lan == "vi"):
                     # CHIÊU THỨC: "Mượn xác hoàn hồn" cho tiếng Việt
                     if lan == "vi":
-                        # Tạo chuỗi giả có độ dài bằng đúng số lượng âm tiết (word2ph)
-                        # Con BERT sẽ thấy 2 ký tự khớp với word2ph có 2 phần tử.
-                        temp_text = "啊" * len(word2ph)
-                        bert_feature = get_bert_feature(temp_text, word2ph)
+                        bert_feature = get_bert_feature(norm_text, word2ph)
                     else:
                         # Tiếng Trung thì cứ để nguyên bản
                         bert_feature = get_bert_feature(norm_text, word2ph)
