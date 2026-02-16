@@ -9,7 +9,7 @@ from typing import List
 
 from .char_convert import tranditional_to_simplified
 from .constants import F2H_ASCII_LETTERS, F2H_DIGITS, F2H_SPACE
-from .num import RE_NUMBER, RE_FRAC, RE_PERCENT, replace_number, replace_fraction, replace_percent
+from .num import RE_NUMBER, RE_FRAC, RE_PERCENT, RE_VERSION , replace_version, replace_number, replace_fraction, replace_percent
 from .phonecode import (
     RE_MOBILE_PHONE,
     RE_HOTLINE,
@@ -24,12 +24,14 @@ from .chronology import (
     replace_date_vn, replace_date_iso, replace_time_range, replace_date_range,
     replace_time
 )
+from .abbreviation import AbbreviationNormalizer
+
 
 class TextNormalizer:
 
     def __init__(self):
         self.SENTENCE_SPLITOR = re.compile(r"(?<!\d)([.!?;])(?!\d)")
-
+        self.abbr_normalizer = AbbreviationNormalizer()
     # ==============================
     # Sentence Split
     # ==============================
@@ -48,9 +50,16 @@ class TextNormalizer:
         
         # 1. Unicode normalize
         sentence = tranditional_to_simplified(sentence)
+        print("BEFORE ABBR:", sentence)
+        sentence = self.abbr_normalizer.normalize(sentence)
+                
         sentence = sentence.translate(F2H_ASCII_LETTERS)
         sentence = sentence.translate(F2H_DIGITS)
         sentence = sentence.translate(F2H_SPACE)
+        
+        # 1.5 Abbreviation (thêm vào đây)
+
+    
         
         # 2. Date & Time
         sentence = RE_DATE_RANGE.sub(replace_date_range, sentence)
@@ -83,10 +92,13 @@ class TextNormalizer:
         # 6. Percent
         sentence = RE_PERCENT.sub(replace_percent, sentence)
 
-        # 7. Remaining numbers
+        # 7. Version
+        sentence = RE_VERSION.sub(replace_version, sentence)
+        
+        # 8. Remaining numbers
         sentence = RE_NUMBER.sub(replace_number, sentence)
-
-        # 8. Cleanup math symbols
+        
+        # 9. Cleanup math symbols
         sentence = sentence.replace("+", " cộng ")
         sentence = re.sub(r"\s-\s", " trừ ", sentence)
         sentence = sentence.replace("×", " nhân ")
@@ -99,9 +111,8 @@ class TextNormalizer:
     # Public API
     # ==============================
 
+
     def normalize(self, text: str) -> str:
-        text = text.replace("TP.HCM", "thành phố hồ chí minh")
-        text = text.replace("TP.", "thành phố")
 
         sentences = self._split(text)
         normalized = [self.normalize_sentence(s) for s in sentences]

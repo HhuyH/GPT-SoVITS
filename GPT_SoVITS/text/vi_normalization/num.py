@@ -31,6 +31,7 @@ DIGITS = {
 RE_NUMBER = re.compile(r"(-?)((\d+)(\.\d+)?)")
 RE_FRAC = re.compile(r"(-?)(\d+)/(\d+)")
 RE_PERCENT = re.compile(r"(-?)(\d+(\.\d+)?)%")
+RE_VERSION = re.compile(r"\bv(\d+(?:\.\d+)+)", re.IGNORECASE)
 
 # ==============================
 # 3. CORE FUNCTIONS
@@ -168,6 +169,11 @@ def replace_percent(match):
     sign = "âm " if match.group(1) else ""
     value = num2str(match.group(2))
     return f"{sign}{value} phần trăm"
+
+def replace_version(match):
+    version = match.group(1)
+    parts = version.split(".")
+    return " chấm ".join(num2str(p) for p in parts)
 
 
 # ==============================

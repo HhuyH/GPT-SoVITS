@@ -36,22 +36,40 @@ def replace_temperature(match):
 # ==============================
 
 measure_dict = {
+    # Area / Volume
     "cm2": "xăng ti mét vuông",
     "cm²": "xăng ti mét vuông",
     "cm3": "xăng ti mét khối",
     "cm³": "xăng ti mét khối",
-    "cm": "xăng ti mét",
-    "kg": "ki lô gam",
-    "km": "ki lô mét",
     "m2": "mét vuông",
     "m²": "mét vuông",
     "m3": "mét khối",
     "m³": "mét khối",
-    "ml": "mi li lít",
-    "m": "mét",
+
+    # Length / Weight
     "mm": "mi li mét",
+    "cm": "xăng ti mét",
+    "m": "mét",
+    "km": "ki lô mét",
+    "kg": "ki lô gam",
+    "g": "gam",
+
+    # Time
+    "ms": "mi li giây",
     "s": "giây",
+
+    # Tech units
+    "GHz": "gi ga héc",
+    "MHz": "mê ga héc",
+    "kHz": "ki lô héc",
+    "Hz": "héc",
+
+    "GB": "gi ga bai",
+    "MB": "mê ga bai",
+    "KB": "ki lô bai",
+    "TB": "tê ra bai",
 }
+
 
 def replace_measure(text: str) -> str:
     sorted_keys = sorted(measure_dict.keys(), key=len, reverse=True)

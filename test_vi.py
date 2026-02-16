@@ -52,16 +52,16 @@ def run_test():
         # "8 ÷ 2 = 4.",
 
         # # ================= NEGATIVE & DECIMAL =================
-        "Nhiệt độ là -10 độ.",
-        "Số pi xấp xỉ 3.14.", # bug
-        "Giá là 1000000 đồng.",
-        "Phiên bản v2.1 phát hành hôm nay.", # bug
+        # "Nhiệt độ là -10 độ.",
+        # "Số pi xấp xỉ 3.14.",
+        # "Giá là 1000000 đồng.",
+        # "Phiên bản v2.1 phát hành hôm nay.",
 
         # # ================= MIXED =================
-        # "Meeting lúc 09:30 ngày 15/08/2024 tại TP.HCM.",
-        # "CPU chạy ở 3.5GHz.",
-        # "Tăng trưởng GDP 8.2% trong năm 2023.",
-        # "Kết quả là 1/3 tổng số 300 người.",
+        "Meeting lúc 09:30 ngày 15/08/2024 tại TP.HCM.",
+        "CPU chạy ở 3.5GHz.",
+        "Tăng trưởng GDP 8.2% trong năm 2023.",
+        "Kết quả là 1/3 tổng số 300 người.",
     ]
     print("=" * 70)
     print("FULL G2P PIPELINE TEST")

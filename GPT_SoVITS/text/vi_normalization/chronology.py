@@ -94,7 +94,7 @@ def replace_time(match):
     result = f"{_safe_hour(hour)} giờ"
 
     if minute != "00":
-        result += f" {_read_minute(minute)} phút"
+        result += f" {_read_minute(minute)}"
     elif not second:
         return f" {result} "
 
