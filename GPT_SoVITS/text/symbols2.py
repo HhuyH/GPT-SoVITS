@@ -2,14 +2,14 @@
 
 pad = "_"
 
-punctuation = ["!", "?", "…", ",", ".", "-"]
+punctuation = ["!", "?", "…", ",", ".", "-", "'"]
 pu_symbols = punctuation + ["SP", "UNK"]
 
 # -----------------------
 # Vietnamese Onsets
 # -----------------------
 vi_onsets = [
-    "b","c","d","đ","g","h","k","l","m","n","p","q","r","s","t","v","x",
+    "b","c","d","đ","g","gh","h","k","l","m","n","p","q","r","s","t","v","x",
     "ch","gi","kh","ng","ngh","nh","ph","th","tr"
 ]
 

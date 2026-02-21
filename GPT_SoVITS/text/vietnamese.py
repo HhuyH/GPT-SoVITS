@@ -4,6 +4,7 @@ import re
 from text.symbols import punctuation
 from text.vi_normalization.text_normlization import TextNormalizer
 from text.symbols2 import vi_medials, vi_nucleus, vi_codas, symbols
+import unicodedata
 
 normalizer = TextNormalizer()
 
@@ -94,10 +95,9 @@ def split_rime(rime):
 
 
 def debug_missing(phones):
-    missing = {p for p in phones if p not in symbols}
-    
-    if missing:
-        print("MISSING TOKENS:", sorted(missing))
+    for p in phones:
+        if p not in symbols:
+            print("MISSING TOKEN:", p)
             
 # -----------------------
 # G2P
@@ -106,6 +106,11 @@ def debug_missing(phones):
 def g2p(text):
     text = text.lower()
     text = normalizer.normalize(text)
+    
+    text = text.replace("ö", "o")
+    text = text.replace("Ö", "O")
+    text = text.replace("ü", "u")
+    text = text.replace("ä", "a")
 
     words = re.findall(r'\w+|[^\w\s]', text, re.UNICODE)
 
