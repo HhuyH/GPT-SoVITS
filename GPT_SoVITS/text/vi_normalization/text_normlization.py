@@ -50,7 +50,6 @@ class TextNormalizer:
         
         # 1. Unicode normalize
         sentence = tranditional_to_simplified(sentence)
-        print("BEFORE ABBR:", sentence)
         sentence = self.abbr_normalizer.normalize(sentence)
                 
         sentence = sentence.translate(F2H_ASCII_LETTERS)

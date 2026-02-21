@@ -3,6 +3,7 @@
 import re
 from text.symbols import punctuation
 from text.vi_normalization.text_normlization import TextNormalizer
+from text.symbols2 import vi_medials, vi_nucleus, vi_codas, symbols
 
 normalizer = TextNormalizer()
 
@@ -60,6 +61,45 @@ def split_onset(word):
     return "", word
 
 # -----------------------
+# Rime
+# -----------------------
+def split_rime(rime):
+    medial = ""
+    nucleus = ""
+    coda = ""
+
+    # 1️⃣ Tách coda (ưu tiên dài nhất)
+    for cd in sorted(vi_codas, key=len, reverse=True):
+        if rime.endswith(cd):
+            coda = cd
+            rime = rime[:-len(cd)]
+            break
+
+    # 2️⃣ Tách medial (chỉ khi còn >=2 ký tự)
+    if len(rime) >= 2:
+        for md in vi_medials:
+            if rime.startswith(md):
+                medial = md
+                rime = rime[len(md):]
+                break
+
+    # 3️⃣ Phần còn lại phải là nucleus hợp lệ
+    if rime in vi_nucleus:
+        nucleus = rime
+    else:
+        # fallback: nếu không khớp thì coi toàn bộ là nucleus
+        nucleus = rime
+
+    return medial, nucleus, coda
+
+
+def debug_missing(phones):
+    missing = {p for p in phones if p not in symbols}
+    
+    if missing:
+        print("MISSING TOKENS:", sorted(missing))
+            
+# -----------------------
 # G2P
 # -----------------------
 
@@ -87,15 +127,31 @@ def g2p(text):
             new_word += remove_tone_char(char)
 
         onset, rime = split_onset(new_word)
+        medial, nucleus, coda = split_rime(rime)
 
         unit = []
+
         if onset:
             unit.append(onset)
-        if rime:
-            unit.append(rime)
+
+        if medial:
+            unit.append(medial)
+
+        if nucleus:
+            unit.append(nucleus)
+
+        if coda:
+            unit.append(coda)
+
         unit.append(tone)
+
 
         phones.extend(unit)
         word2ph.append(len(unit))
-
+        # DEBUG ở cuối
+    missing = {p for p in phones if p not in symbols}
+    if missing:
+        print("\n=== MISSING TOKENS ===")
+        print(sorted(missing))
+        print("======================\n")
     return phones, word2ph
