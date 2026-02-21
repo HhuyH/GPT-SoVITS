@@ -34,7 +34,7 @@ vi_nucleus = [
 
     # Nguyên âm đôi mở
     "ai","ay","ao","au",
-    "âu","eo","êu",
+    "âu","eo","êu", "ây",
     "ia","iê",
     "ua","uô",
     "ưa","ươ",
